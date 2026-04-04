@@ -229,6 +229,10 @@ GITHUB_APP_INSTALLATION_ID=789012</code></pre>
 				<code>/repo-health</code>
 				<p>Generate a health report with metrics and action items</p>
 			</div>
+			<a href="https://github.com/users/cliftonc/projects/4" class="skill skill-cta" target="_blank" rel="noopener">
+				<strong>Want more?</strong>
+				<p>Check the roadmap for what's coming next</p>
+			</a>
 		</div>
 	</section>
 
@@ -250,13 +254,13 @@ GITHUB_APP_INSTALLATION_ID=789012</code></pre>
 				<span class="freq">Every 30 min</span>
 			</div>
 			<div class="schedule-row">
-				<span>Refresh GitHub token</span>
-				<span class="freq">Every 50 min</span>
-			</div>
-			<div class="schedule-row">
 				<span>Weekly health report</span>
 				<span class="freq">Mondays 9am</span>
 			</div>
+			<a href="https://github.com/users/cliftonc/projects/4" class="schedule-row schedule-cta" target="_blank" rel="noopener">
+				<span>More coming soon...</span>
+				<span class="freq">Roadmap</span>
+			</a>
 		</div>
 	</section>
 
@@ -718,6 +722,24 @@ GITHUB_APP_INSTALLATION_ID=789012</code></pre>
 		line-height: 1.5;
 	}
 
+	.skill-cta {
+		border-style: dashed;
+		border-color: var(--border);
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		transition: border-color 0.2s;
+	}
+
+	.skill-cta:hover {
+		border-color: var(--gold);
+	}
+
+	.skill-cta strong {
+		color: var(--gold);
+		font-size: 0.9rem;
+	}
+
 	/* Schedule */
 	.schedule-table {
 		margin-top: 1.5rem;
@@ -751,6 +773,21 @@ GITHUB_APP_INSTALLATION_ID=789012</code></pre>
 		font-family: var(--mono);
 		font-size: 0.8rem;
 		color: var(--teal);
+	}
+
+	.schedule-cta {
+		border-style: dashed;
+		border-bottom: none;
+		color: var(--text-muted);
+		transition: color 0.2s;
+	}
+
+	.schedule-cta:hover {
+		color: var(--gold);
+	}
+
+	.schedule-cta .freq {
+		color: var(--gold);
 	}
 
 	/* Footer */
