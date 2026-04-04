@@ -8,7 +8,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<link rel="icon" type="image/png" href="/logo.png" />
 	<title>Run It for Real — Last Light</title>
-	<meta name="description" content="Deploy Last Light for real — production checklist, hosting options, and operational tips for running your GitHub maintenance agent." />
+	<meta name="description" content="Deploy Last Light for real — fork, configure, docker compose up. Production-ready with automatic TLS." />
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -32,152 +32,209 @@
 
 	<section class="page-header">
 		<h1>Run it <span class="accent">for real</span></h1>
-		<p class="subtitle">You've followed the Get Started guide and it works locally. Now you want it running 24/7, handling real webhooks, on real repos. Here's how.</p>
+		<p class="subtitle">Fork the repo, drop in your secrets, <code>docker compose up</code>. Caddy handles TLS automatically.</p>
 	</section>
 
-	<section>
-		<h2>Production checklist</h2>
-		<div class="checklist">
-			<div class="check-item">
-				<span class="check-icon">1</span>
-				<div>
-					<h3>Pick a host</h3>
-					<p>Last Light needs a long-running process with a public URL for webhooks. Good options:</p>
-					<div class="options-grid">
-						<div class="option-card">
-							<h4>VPS / Dedicated</h4>
-							<p>Any Linux box works. Run inside <code>tmux</code> or use <code>systemd</code>. Cheapest option — a $5/mo VPS handles dozens of repos.</p>
-						</div>
-						<div class="option-card">
-							<h4>Docker</h4>
-							<p>Use the built-in Docker backend for isolation. Mount your <code>.env</code> and private key. Works on any container host.</p>
-						</div>
-						<div class="option-card">
-							<h4>Modal (recommended)</h4>
-							<p>Cloud sandbox with auto-scaling. The terminal runs in Modal VMs while the agent runs on your host. Best isolation with zero container management.</p>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<div class="check-item">
-				<span class="check-icon">2</span>
-				<div>
-					<h3>Expose webhooks</h3>
-					<p>GitHub needs to reach your webhook endpoint. The default is <code>http://your-host:8644/webhooks/github</code>.</p>
-					<ul>
-						<li><strong>Public server:</strong> Open port 8644, or reverse-proxy through nginx/Caddy with TLS.</li>
-						<li><strong>Behind NAT:</strong> Use <a href="https://ngrok.com" target="_blank" rel="noopener">ngrok</a>, <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/" target="_blank" rel="noopener">Cloudflare Tunnel</a>, or <a href="https://tailscale.com/kb/1223/funnel" target="_blank" rel="noopener">Tailscale Funnel</a> to get a public URL.</li>
-					</ul>
-					<p class="section-note">Set your webhook URL in the GitHub App settings, and the same secret in both places (<code>WEBHOOK_SECRET</code> in <code>.env</code>, and the GitHub App webhook config).</p>
-				</div>
-			</div>
-
-			<div class="check-item">
-				<span class="check-icon">3</span>
-				<div>
-					<h3>Secure your secrets</h3>
-					<p>Your <code>.env</code> contains API keys and your GitHub App private key. In production:</p>
-					<ul>
-						<li>Restrict file permissions: <code>chmod 600 .env *.pem</code></li>
-						<li>Don't commit secrets — both are in <code>.gitignore</code> by default</li>
-						<li>Consider a secrets manager (Vault, AWS Secrets Manager, etc.) for team deployments</li>
-						<li>The GitHub App private key is the most sensitive asset — it can act as your bot on any installed repo</li>
-					</ul>
-				</div>
-			</div>
-
-			<div class="check-item">
-				<span class="check-icon">4</span>
-				<div>
-					<h3>Install the GitHub App on your repos</h3>
-					<p>Go to your GitHub App's settings page and install it on the repos (or org) you want Last Light to manage. The bot only sees repos where it's installed.</p>
-					<p>Required permissions: Issues (read/write), Pull Requests (read/write), Contents (read/write), Metadata (read).</p>
-				</div>
-			</div>
-
-			<div class="check-item">
-				<span class="check-icon">5</span>
-				<div>
-					<h3>Start the gateway</h3>
-					<p>For production, run the gateway (not interactive CLI):</p>
-					<pre><code>./lastlight gateway</code></pre>
-					<p>This starts the webhook listener, Discord bot (if configured), and cron scheduler. To keep it running:</p>
-					<pre><code># With systemd (recommended)
-sudo systemctl enable lastlight
-sudo systemctl start lastlight
-
-# Or with tmux
-tmux new -s lastlight './lastlight gateway'
-
-# Or with Docker
-docker compose up -d</code></pre>
-				</div>
-			</div>
-
-			<div class="check-item">
-				<span class="check-icon">6</span>
-				<div>
-					<h3>Verify it's working</h3>
-					<p>Open an issue on one of your installed repos. Last Light should triage it within seconds (webhooks) or minutes (cron). Check:</p>
-					<ul>
-						<li>Labels were applied</li>
-						<li>The bot left a triage comment</li>
-						<li>Logs show the event was received: <code>tail -f logs/</code></li>
-					</ul>
-				</div>
-			</div>
+	<section class="security-advisory">
+		<div class="advisory-card">
+			<h3>Run it outside your core infrastructure</h3>
+			<p>Last Light is a powerful autonomous agent. While it runs all code in a sandboxed terminal backend (Modal, Daytona, etc.), it is early-stage software that may have undetected security issues. Deploy it on an isolated host — a cheap VPS, a separate cloud project, or a dedicated VM — where it cannot reach sensitive internal systems, databases, or credentials beyond what it explicitly needs.</p>
 		</div>
 	</section>
 
+	<!-- Step 1: Fork -->
+	<section>
+		<div class="step-block">
+			<h3><span class="step-label">Step 1</span> Fork the repo</h3>
+		<p class="section-desc">Fork Last Light so you can customize skills, tweak prompts, and track your own changes. Pull upstream updates whenever you want.</p>
+		<pre><code># Fork on GitHub first, then clone your fork
+git clone https://github.com/YOUR-USERNAME/lastlight.git
+cd lastlight
+
+# Add upstream so you can pull updates later
+git remote add upstream https://github.com/cliftonc/lastlight.git</code></pre>
+		<p class="section-note">Your skills, deployment config, and Dockerfile are yours to modify. The <code>skills/</code> directory is where all the behavior lives — edit freely.</p>
+		</div>
+
+		<div class="step-block">
+			<h3><span class="step-label">Step 2</span> Configure secrets</h3>
+		<p class="section-desc">All secrets live in a <code>secrets/</code> directory that's gitignored and mounted read-only into the container.</p>
+		<pre><code># Copy the production template
+cp deploy/.env.production.example secrets/.env
+
+# Copy the config template
+cp config.yaml.example secrets/config.yaml
+
+# Place your GitHub App private key
+cp ~/path-to/your-app.private-key.pem secrets/</code></pre>
+		<p class="step-detail">Edit <code>secrets/.env</code> with your:</p>
+		<ul class="config-list">
+			<li><strong>LLM API key</strong> — Anthropic, OpenRouter, or another provider</li>
+			<li><strong>GitHub App credentials</strong> — App ID, Installation ID, and private key path</li>
+			<li><strong>Terminal backend credentials</strong> — Modal tokens or Daytona API key</li>
+			<li><strong>Webhook secret</strong> — must match your GitHub App's webhook settings</li>
+			<li><strong>Domain</strong> — your public hostname for automatic TLS (or <code>localhost</code> for dev)</li>
+		</ul>
+		<p class="step-detail">Edit <code>secrets/config.yaml</code> — the key setting is the terminal backend:</p>
+		<pre><code>terminal:
+  backend: modal    # recommended — see "Choose a backend" below</code></pre>
+		</div>
+
+		<div class="step-block">
+			<h3><span class="step-label">Step 3</span> Choose a terminal backend</h3>
+		<p class="section-desc">The terminal backend is where the agent runs code — cloning repos, editing files, running tests. It needs an isolated environment, not the host machine.</p>
+
+		<div class="backends-grid">
+			<div class="backend-card recommended">
+				<div class="badge">Recommended</div>
+				<h3>Modal</h3>
+				<p>Cloud VMs with auto-scaling and best isolation. Each task gets its own sandbox. No container management on your end.</p>
+				<pre><code># Get credentials (one-time)
+pip install modal
+modal token new
+
+# Add to secrets/.env
+MODAL_TOKEN_ID=ak-...
+MODAL_TOKEN_SECRET=as-...</code></pre>
+			</div>
+			<div class="backend-card">
+				<h3>Daytona</h3>
+				<p>Managed cloud environments. Good alternative if you prefer a different provider.</p>
+				<pre><code># Add to secrets/.env
+DAYTONA_API_KEY=...</code></pre>
+			</div>
+			<div class="backend-card">
+				<h3>SSH</h3>
+				<p>Use a remote server as the sandbox. Good if you already have infrastructure.</p>
+				<pre><code># Add to secrets/.env
+TERMINAL_SSH_HOST=192.168.1.100
+TERMINAL_SSH_USER=agent</code></pre>
+			</div>
+			<div class="backend-card warning">
+				<h3>Docker backend</h3>
+				<p>Not recommended when Last Light itself runs in Docker. Docker-in-Docker requires <code>--privileged</code>, causes storage driver conflicts, and is a security risk. Even its original creator advises against it.</p>
+			</div>
+		</div>
+
+		<div class="step-block">
+			<h3><span class="step-label">Step 4</span> Build & run</h3>
+		<p class="section-desc">The Docker image is self-contained — Hermes, the MCP server, all skills, and dependencies are baked in. Secrets are injected at runtime via the mounted volume.</p>
+		<pre><code># Set your public domain (for Caddy TLS)
+export DOMAIN=lastlight.example.com
+
+# Build and start
+docker compose up -d
+
+# Watch the logs
+docker compose logs -f agent</code></pre>
+		<p class="step-detail">What happens:</p>
+		<ul class="config-list">
+			<li><strong>Agent container</strong> starts, symlinks your secrets, generates a GitHub token, and starts the webhook listener on port 8644</li>
+			<li><strong>Caddy container</strong> provisions a Let's Encrypt certificate for your domain and reverse-proxies HTTPS to the agent</li>
+			<li>For local dev, set <code>DOMAIN=localhost</code> — Caddy serves HTTP only, no TLS</li>
+		</ul>
+		<p class="step-detail">Verify it's running:</p>
+		<pre><code># Health check
+curl https://lastlight.example.com/health
+
+# Or locally
+curl http://localhost/health</code></pre>
+		</div>
+
+		<div class="step-block">
+			<h3><span class="step-label">Step 5</span> Point GitHub webhooks</h3>
+		<p class="section-desc">In your GitHub App settings, set the webhook URL and subscribe to events.</p>
+		<ul class="config-list">
+			<li><strong>Webhook URL:</strong> <code>https://lastlight.example.com/webhooks/github</code></li>
+			<li><strong>Secret:</strong> same value as <code>WEBHOOK_SECRET</code> in your <code>secrets/.env</code></li>
+			<li><strong>Events:</strong> Issues, Pull requests, Issue comments, PR review comments, PR reviews</li>
+		</ul>
+		<p class="step-detail">Install the GitHub App on the repos (or org) you want Last Light to manage. Test by opening an issue — the bot should triage it within seconds.</p>
+		</div>
+
+		<div class="step-block">
+			<h3><span class="step-label">Step 6</span> Running in Kubernetes <span class="step-label">optional</span></h3>
+		<p class="section-desc">The same Docker image works in K8s. Skip Caddy — use your cluster's Ingress controller for TLS instead.</p>
+		<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lastlight
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lastlight
+  template:
+    metadata:
+      labels:
+        app: lastlight
+    spec:
+      containers:
+      - name: agent
+        image: your-registry/lastlight:latest
+        ports:
+        - containerPort: 8644
+        volumeMounts:
+        - name: secrets
+          mountPath: /opt/lastlight/secrets
+          readOnly: true
+        - name: state
+          mountPath: /opt/lastlight/sessions
+      volumes:
+      - name: secrets
+        secret:
+          secretName: lastlight-secrets
+      - name: state
+        persistentVolumeClaim:
+          claimName: lastlight-state
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lastlight
+spec:
+  selector:
+    app: lastlight
+  ports:
+  - port: 8644
+    targetPort: 8644</code></pre>
+		<p class="section-note">Create the K8s Secret from your local files: <code>kubectl create secret generic lastlight-secrets --from-file=.env=secrets/.env --from-file=config.yaml=secrets/config.yaml --from-file=your-app.pem=secrets/your-app.private-key.pem</code></p>
+		</div>
+	</section>
+
+	<!-- Ops tips -->
 	<section>
 		<h2>Operational tips</h2>
 		<div class="tips-grid">
 			<div class="tip-card">
+				<h3>Updating</h3>
+				<p>Pull upstream changes, rebuild the image, restart:</p>
+				<pre><code>git fetch upstream
+git merge upstream/main
+docker compose build
+docker compose up -d</code></pre>
+			</div>
+			<div class="tip-card">
 				<h3>Token refresh</h3>
-				<p>GitHub App tokens expire hourly. The MCP server handles this automatically — no action needed. If you see auth errors in logs, restart the agent to force a fresh token.</p>
+				<p>GitHub App tokens expire hourly. The MCP server refreshes them automatically — no action needed. If you see auth errors, restart the agent container.</p>
 			</div>
 			<div class="tip-card">
 				<h3>Rate limits</h3>
-				<p>GitHub App installations get 5,000 API calls/hour. For most repos that's plenty. If you hit limits, increase the cron interval or reduce the number of repos per installation.</p>
+				<p>GitHub App installations get 5,000 API calls/hour. For most repos that's plenty. If you hit limits, increase cron intervals or reduce repos per installation.</p>
 			</div>
 			<div class="tip-card">
 				<h3>LLM costs</h3>
-				<p>Each issue triage or PR review is one LLM call. At typical usage (a few events/day), costs are minimal. Set a fallback model in <code>config.yaml</code> to avoid downtime when your primary provider rate-limits.</p>
+				<p>Each triage or review is ~1 LLM call. Build requests use more tokens. Set a <code>fallback_model</code> in config.yaml to avoid downtime when your provider rate-limits.</p>
 			</div>
 			<div class="tip-card">
-				<h3>Logs & debugging</h3>
-				<p>Session logs are saved to <code>logs/</code> as JSON trajectories. Each webhook event gets its own session file. Use these to debug unexpected behavior or replay events.</p>
+				<h3>Logs</h3>
+				<p>Session logs are saved as JSON trajectories. View them with <code>docker compose logs agent</code> or inspect the <code>agent-logs</code> volume.</p>
 			</div>
 			<div class="tip-card">
 				<h3>Multiple repos</h3>
-				<p>One Last Light instance handles all repos where the GitHub App is installed. No per-repo configuration needed — skills apply universally. Customize behavior by editing the skill files.</p>
-			</div>
-			<div class="tip-card">
-				<h3>Updating</h3>
-				<p>Pull the latest from the repo and restart. Hermes itself updates separately via <code>hermes update</code>. Skills are versioned — check the changelog for breaking changes.</p>
+				<p>One instance handles all repos where the GitHub App is installed. No per-repo config needed — skills apply universally.</p>
 			</div>
 		</div>
-	</section>
-
-	<section>
-		<h2>Example: systemd service</h2>
-		<p class="section-desc">A minimal systemd unit file to keep Last Light running on a Linux server.</p>
-		<pre><code>[Unit]
-Description=Last Light GitHub Agent
-After=network.target
-
-[Service]
-Type=simple
-User=lastlight
-WorkingDirectory=/opt/lastlight
-ExecStart=/opt/lastlight/lastlight gateway
-Restart=on-failure
-RestartSec=10
-Environment=HOME=/opt/lastlight
-
-[Install]
-WantedBy=multi-user.target</code></pre>
 	</section>
 
 	<footer>
@@ -312,12 +369,12 @@ WantedBy=multi-user.target</code></pre>
 	section {
 		max-width: 1000px;
 		margin: 0 auto;
-		padding: 3rem 2rem;
+		padding: 2.5rem 2rem;
 	}
 
 	section h2 {
-		font-size: 1.6rem;
-		margin-bottom: 1rem;
+		font-size: 1.4rem;
+		margin-bottom: 0.75rem;
 		letter-spacing: -0.01em;
 	}
 
@@ -325,9 +382,9 @@ WantedBy=multi-user.target</code></pre>
 
 	.section-desc {
 		color: var(--text-muted);
-		max-width: 600px;
-		margin-bottom: 1.5rem;
+		margin-bottom: 1rem;
 		line-height: 1.65;
+		font-size: 0.92rem;
 	}
 
 	.section-note {
@@ -335,7 +392,7 @@ WantedBy=multi-user.target</code></pre>
 		border-left: 3px solid var(--teal);
 		padding: 0.75rem 1rem;
 		border-radius: 0 8px 8px 0;
-		font-size: 0.88rem;
+		font-size: 0.85rem;
 		color: var(--text-muted);
 		margin-top: 0.75rem;
 		line-height: 1.6;
@@ -357,106 +414,165 @@ WantedBy=multi-user.target</code></pre>
 	.page-header .subtitle {
 		font-size: 1.1rem;
 		color: var(--text-muted);
-		max-width: 600px;
+		max-width: 800px;
 		line-height: 1.65;
 	}
 
-	/* Checklist */
-	.checklist {
-		display: flex;
-		flex-direction: column;
-		gap: 2rem;
-		margin-top: 1.5rem;
+	/* Security advisory */
+	.security-advisory {
+		padding-top: 0;
+		padding-bottom: 0;
 	}
 
-	.check-item {
-		display: flex;
-		gap: 1.25rem;
-		align-items: flex-start;
+	.advisory-card {
+		background: rgba(232, 117, 42, 0.08);
+		border: 1px solid rgba(232, 117, 42, 0.3);
+		border-radius: 10px;
+		padding: 1.25rem 1.5rem;
 	}
 
-	.check-icon {
-		flex-shrink: 0;
-		width: 32px;
-		height: 32px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 50%;
-		background: var(--teal);
-		color: var(--text-bright);
-		font-weight: 600;
-		font-size: 0.85rem;
-		font-family: var(--mono);
-	}
-
-	.check-item h3 {
-		font-size: 1.05rem;
-		margin-bottom: 0.4rem;
-	}
-
-	.check-item p {
-		font-size: 0.9rem;
-		color: var(--text-muted);
-		line-height: 1.6;
+	.advisory-card h3 {
+		font-size: 0.95rem;
+		color: var(--orange);
 		margin-bottom: 0.5rem;
 	}
 
-	.check-item ul {
-		list-style: none;
-		padding: 0;
-		margin: 0.5rem 0;
-	}
-
-	.check-item ul li {
+	.advisory-card p {
 		font-size: 0.88rem;
 		color: var(--text-muted);
+		line-height: 1.7;
+	}
+
+	/* Step blocks — matches home page pattern */
+	.step-block {
+		margin-bottom: 2.5rem;
+		padding-top: 2rem;
+		border-top: 1px solid var(--border);
+	}
+
+	.step-block:first-child {
+		border-top: none;
+		padding-top: 0;
+	}
+
+	.step-block h3 {
+		font-size: 1.2rem;
+		margin-bottom: 0.75rem;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.6rem;
+	}
+
+	.step-label {
+		font-family: var(--mono);
+		font-size: 0.65rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		background: var(--teal);
+		color: var(--text-bright);
+		padding: 0.2rem 0.55rem;
+		border-radius: 4px;
+		font-weight: 600;
+	}
+
+	.step-block p {
+		font-size: 0.9rem;
+		color: var(--text-muted);
+		margin: 0.5rem 0;
 		line-height: 1.65;
-		padding-left: 1.25rem;
+	}
+
+	.step-detail {
+		font-size: 0.9rem;
+		color: var(--text-muted);
+		margin-top: 0.75rem;
+		line-height: 1.6;
+	}
+
+	.config-list {
+		list-style: none;
+		padding: 0;
+		margin: 0.75rem 0;
+	}
+
+	.config-list li {
+		font-size: 0.88rem;
+		color: var(--text-muted);
+		line-height: 1.7;
+		padding: 0.35rem 0 0.35rem 1.5rem;
 		position: relative;
 	}
 
-	.check-item ul li::before {
+	.config-list li::before {
 		content: '';
 		position: absolute;
-		left: 0;
-		top: 0.55em;
-		width: 6px;
-		height: 6px;
+		left: 0.25rem;
+		top: 0.85em;
+		width: 7px;
+		height: 7px;
 		border-radius: 50%;
 		background: var(--teal);
 	}
 
-	/* Options grid */
-	.options-grid {
+	/* Backend cards */
+	.backends-grid {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 0.75rem;
-		margin-top: 0.75rem;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1rem;
+		margin-top: 1rem;
 	}
 
-	.option-card {
+	.backend-card {
 		background: var(--bg-card);
 		border: 1px solid var(--border);
 		border-radius: 10px;
 		padding: 1.25rem;
 		transition: border-color 0.25s;
+		position: relative;
 	}
 
-	.option-card:hover {
+	.backend-card:hover {
 		border-color: #2A3A4D;
 	}
 
-	.option-card h4 {
+	.backend-card.recommended {
+		border-color: var(--teal-dark);
+	}
+
+	.backend-card.warning {
+		border-color: #3D2A1A;
+		opacity: 0.8;
+	}
+
+	.backend-card .badge {
+		position: absolute;
+		top: -0.5rem;
+		right: 1rem;
+		background: var(--teal);
 		color: var(--text-bright);
-		font-size: 0.9rem;
+		font-size: 0.7rem;
+		font-weight: 600;
+		padding: 0.15rem 0.6rem;
+		border-radius: 4px;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.backend-card h3 {
+		font-size: 0.95rem;
 		margin-bottom: 0.35rem;
 	}
 
-	.option-card p {
+	.backend-card p {
 		font-size: 0.82rem;
 		color: var(--text-muted);
 		line-height: 1.55;
+	}
+
+	.backend-card pre {
+		margin-top: 0.5rem;
+		margin-bottom: 0;
 	}
 
 	/* Tips grid */
@@ -471,7 +587,7 @@ WantedBy=multi-user.target</code></pre>
 		background: var(--bg-card);
 		border: 1px solid var(--border);
 		border-radius: 10px;
-		padding: 1.5rem;
+		padding: 1.25rem;
 		transition: border-color 0.25s, background 0.25s;
 	}
 
@@ -481,14 +597,18 @@ WantedBy=multi-user.target</code></pre>
 	}
 
 	.tip-card h3 {
-		font-size: 0.95rem;
-		margin-bottom: 0.4rem;
+		font-size: 0.9rem;
+		margin-bottom: 0.35rem;
 	}
 
 	.tip-card p {
-		font-size: 0.85rem;
+		font-size: 0.82rem;
 		color: var(--text-muted);
-		line-height: 1.6;
+		line-height: 1.55;
+	}
+
+	.tip-card pre {
+		margin-bottom: 0;
 	}
 
 	/* Footer */
@@ -503,7 +623,8 @@ WantedBy=multi-user.target</code></pre>
 		margin: 0 auto;
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		gap: 1rem;
+		flex-wrap: wrap;
 	}
 
 	.footer-links {
@@ -518,9 +639,7 @@ WantedBy=multi-user.target</code></pre>
 		transition: color 0.2s;
 	}
 
-	.footer-links a:hover {
-		color: var(--gold);
-	}
+	.footer-links a:hover { color: var(--gold); }
 
 	.footer-sep {
 		color: var(--border);
@@ -533,13 +652,8 @@ WantedBy=multi-user.target</code></pre>
 		margin-left: auto;
 	}
 
-	.footer-content p {
-		font-size: 0.82rem;
-		color: var(--text-muted);
-	}
-
 	@media (max-width: 640px) {
-		.options-grid { grid-template-columns: 1fr; }
+		.backends-grid { grid-template-columns: 1fr; }
 		.tips-grid { grid-template-columns: 1fr; }
 		.nav-links { gap: 0.75rem; }
 		.nav-links a { font-size: 0.8rem; }
