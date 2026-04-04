@@ -205,7 +205,37 @@ GITHUB_APP_INSTALLATION_ID=789012</code></pre>
 		</div>
 
 		<div class="step-block">
-			<h3><span class="step-label">Step 6</span> Run it</h3>
+			<h3><span class="step-label">Step 6</span> Connect a gateway <span class="step-label">optional</span></h3>
+			<p>Talk to Last Light from Slack, Discord, or via webhooks. Run the setup wizard:</p>
+			<pre><code>./lastlight gateway setup</code></pre>
+			<p>Then run it as a persistent service:</p>
+			<pre><code>./lastlight gateway            # run in foreground
+./lastlight gateway install    # install as a system service</code></pre>
+
+			<div class="gateway-grid">
+				<div class="gateway-card">
+					<h4>Discord</h4>
+					<p>Create a bot at the <a href="https://discord.com/developers/applications" target="_blank" rel="noopener">Discord Developer Portal</a>, then set in <code>.env</code>:</p>
+					<pre><code>DISCORD_BOT_TOKEN=your-token
+DISCORD_HOME_CHANNEL=channel-id</code></pre>
+				</div>
+				<div class="gateway-card">
+					<h4>Slack</h4>
+					<p>Create a Slack app with bot token scopes, then set in <code>.env</code>:</p>
+					<pre><code>SLACK_BOT_TOKEN=xoxb-...
+SLACK_APP_TOKEN=xapp-...</code></pre>
+				</div>
+				<div class="gateway-card">
+					<h4>Webhooks</h4>
+					<p>Enable the built-in API server for webhook integrations:</p>
+					<pre><code>API_SERVER_ENABLED=true
+API_SERVER_KEY=your-secret-key</code></pre>
+				</div>
+			</div>
+		</div>
+
+		<div class="step-block">
+			<h3><span class="step-label">Step 7</span> Run it</h3>
 			<pre><code>./lastlight</code></pre>
 			<p>That's it. You can also run single commands:</p>
 			<pre><code>./lastlight chat -q "Review the latest PR on yourname/your-repo"
@@ -676,6 +706,40 @@ GITHUB_APP_INSTALLATION_ID=789012</code></pre>
 		font-size: 0.78rem;
 	}
 
+	/* Gateways */
+	.gateway-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.75rem;
+		margin: 1rem 0;
+	}
+
+	.gateway-card {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		padding: 1rem 1.25rem;
+	}
+
+	.gateway-card h4 {
+		color: var(--text-bright);
+		font-size: 0.9rem;
+		margin-bottom: 0.3rem;
+	}
+
+	.gateway-card > p {
+		font-size: 0.82rem;
+		color: var(--text-muted);
+		line-height: 1.5;
+		margin: 0.3rem 0;
+	}
+
+	.gateway-card pre {
+		margin: 0.5rem 0 0;
+		padding: 0.6rem 0.8rem;
+		font-size: 0.78rem;
+	}
+
 	.backend-not-recommended {
 		opacity: 0.6;
 	}
@@ -821,6 +885,10 @@ GITHUB_APP_INSTALLATION_ID=789012</code></pre>
 		}
 
 		.backends-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.gateway-grid {
 			grid-template-columns: 1fr;
 		}
 
