@@ -157,20 +157,14 @@ GITHUB_APP_INSTALLATION_ID=789012</code></pre>
 
 			<div class="backends-grid">
 				<div class="backend-card">
-					<h4>Local</h4>
-					<p>Commands run on your machine. No setup, no isolation. Good for getting started.</p>
-					<pre><code>terminal:
-  backend: local</code></pre>
-				</div>
-				<div class="backend-card">
 					<h4>Docker</h4>
 					<p>Sandboxed container with dropped capabilities, PID limits, and tmpfs. Needs Docker installed.</p>
 					<pre><code>terminal:
   backend: docker</code></pre>
 				</div>
 				<div class="backend-card">
-					<h4>Modal</h4>
-					<p>Cloud VM sandbox. Ephemeral, scalable, great for evals. Needs a <a href="https://modal.com" target="_blank" rel="noopener">Modal</a> account.</p>
+					<h4><a href="https://modal.com" target="_blank" rel="noopener">Modal</a></h4>
+					<p>Cloud VM sandbox. Ephemeral, scalable, great for evals. Needs a Modal account.</p>
 					<pre><code>terminal:
   backend: modal</code></pre>
 					<p>Set <code>MODAL_TOKEN_ID</code> and <code>MODAL_TOKEN_SECRET</code> in <code>.env</code>.</p>
@@ -183,16 +177,22 @@ GITHUB_APP_INSTALLATION_ID=789012</code></pre>
 					<p>Set <code>TERMINAL_SSH_HOST</code> and <code>TERMINAL_SSH_USER</code> in <code>.env</code>.</p>
 				</div>
 				<div class="backend-card">
-					<h4>Daytona</h4>
-					<p>Managed cloud dev environment with stop/resume. Needs a <a href="https://daytona.io" target="_blank" rel="noopener">Daytona</a> API key.</p>
+					<h4><a href="https://www.daytona.io/" target="_blank" rel="noopener">Daytona</a></h4>
+					<p>Managed cloud dev environment with stop/resume. Needs a Daytona API key.</p>
 					<pre><code>terminal:
   backend: daytona</code></pre>
 				</div>
 				<div class="backend-card">
-					<h4>Singularity</h4>
+					<h4><a href="https://apptainer.org/" target="_blank" rel="noopener">Singularity</a></h4>
 					<p>For HPC clusters and shared machines where Docker isn't available. Uses Apptainer/Singularity.</p>
 					<pre><code>terminal:
   backend: singularity</code></pre>
+				</div>
+				<div class="backend-card backend-not-recommended">
+					<h4>Local <span class="badge-warn">not recommended</span></h4>
+					<p>Commands run directly on your machine. No isolation — the agent has full access to your filesystem.</p>
+					<pre><code>terminal:
+  backend: local</code></pre>
 				</div>
 			</div>
 
@@ -670,6 +670,24 @@ GITHUB_APP_INSTALLATION_ID=789012</code></pre>
 		margin: 0.5rem 0 0;
 		padding: 0.6rem 0.8rem;
 		font-size: 0.78rem;
+	}
+
+	.backend-not-recommended {
+		opacity: 0.6;
+	}
+
+	.badge-warn {
+		font-family: var(--mono);
+		font-size: 0.65rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--orange);
+		background: rgba(232, 117, 42, 0.12);
+		padding: 0.15em 0.5em;
+		border-radius: 4px;
+		margin-left: 0.4rem;
+		vertical-align: middle;
 	}
 
 	/* Skills */
