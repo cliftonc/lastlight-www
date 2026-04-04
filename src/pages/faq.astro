@@ -1,0 +1,451 @@
+---
+// Last Light — FAQ
+---
+
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="icon" type="image/png" href="/logo.png" />
+	<title>FAQ — Last Light</title>
+	<meta name="description" content="Frequently asked questions about Last Light — the open-source GitHub maintenance agent." />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+	<nav>
+		<a href="/" class="nav-logo">
+			<img src="/logo.png" alt="" width="24" height="24" style="object-fit: contain;" /> Last Light
+		</a>
+		<div class="nav-links">
+			<a href="/#features">Features</a>
+			<a href="/#get-started">Get Started</a>
+			<a href="/run-it">Run It for Real</a>
+			<a href="/faq">FAQ</a>
+			<a href="https://github.com/cliftonc/lastlight" class="gh-link" target="_blank" rel="noopener">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+			</a>
+		</div>
+	</nav>
+
+	<section class="page-header">
+		<h1>Frequently asked <span class="accent">questions</span></h1>
+		<p class="subtitle">Common questions about setting up, running, and customizing Last Light.</p>
+	</section>
+
+	<section class="faq-section">
+
+		<div class="faq-category">
+			<h2>Getting started</h2>
+
+			<details class="faq-item" open>
+				<summary>What do I need to run Last Light?</summary>
+				<div class="faq-answer">
+					<p>Three things:</p>
+					<ol>
+						<li><a href="https://hermes-agent.nousresearch.com/" target="_blank" rel="noopener">Hermes Agent</a> installed (<code>pip install hermes-agent</code> or via the installer)</li>
+						<li>A <a href="https://docs.github.com/en/apps/creating-github-apps" target="_blank" rel="noopener">GitHub App</a> with Issues, PRs, and Contents permissions</li>
+						<li>An LLM API key (OpenRouter, Anthropic, OpenAI, etc.)</li>
+					</ol>
+					<p>See the <a href="/#get-started">Get Started</a> guide for step-by-step instructions.</p>
+				</div>
+			</details>
+
+			<details class="faq-item">
+				<summary>Which LLM providers work?</summary>
+				<div class="faq-answer">
+					<p>Any provider Hermes supports: OpenRouter (recommended — one key, many models), Anthropic, OpenAI, OpenAI Codex, Google, and more. Configure your provider and model in <code>config.yaml</code>.</p>
+					<p>You can also set a <code>fallback_model</code> so the agent keeps working if your primary provider rate-limits.</p>
+				</div>
+			</details>
+
+			<details class="faq-item">
+				<summary>Does it work with GitHub Enterprise?</summary>
+				<div class="faq-answer">
+					<p>Not yet tested, but it should work with GitHub Enterprise Cloud since it uses the same API. GitHub Enterprise Server (self-hosted) would need base URL configuration in the MCP server — contributions welcome.</p>
+				</div>
+			</details>
+		</div>
+
+		<div class="faq-category">
+			<h2>How it works</h2>
+
+			<details class="faq-item">
+				<summary>How does the bot authenticate with GitHub?</summary>
+				<div class="faq-answer">
+					<p>Last Light authenticates as a <strong>GitHub App</strong>, not a personal account. It generates short-lived installation tokens (expire in ~1 hour) using your App's private key. Every action — comments, labels, PR reviews — shows up as coming from the bot, not you.</p>
+					<p>The MCP server handles token generation and refresh automatically. For git operations inside sandboxes, a credential file is synced before each command.</p>
+				</div>
+			</details>
+
+			<details class="faq-item">
+				<summary>What's the difference between webhook mode and cron mode?</summary>
+				<div class="faq-answer">
+					<p><strong>Webhooks</strong> react in real-time — GitHub sends events (issue opened, PR created, comment posted) to your endpoint, and the agent handles them immediately. Requires a publicly reachable URL.</p>
+					<p><strong>Cron</strong> polls on a schedule — the agent checks for new issues, PRs, and stale items periodically (e.g. every 15 minutes). No public URL needed, but responses are delayed.</p>
+					<p>Use one or the other — not both. Webhooks are better for responsive repos; cron is simpler to deploy.</p>
+				</div>
+			</details>
+
+			<details class="faq-item">
+				<summary>Can the bot actually fix bugs and open PRs?</summary>
+				<div class="faq-answer">
+					<p>Yes. When a maintainer @mentions the bot on an issue, it clones the repo into a sandbox (Modal VM by default), reads the code, makes changes, runs tests, and opens a PR. It's not magic — it works best for well-scoped issues with clear descriptions.</p>
+					<p>The bot always links back to the original issue and posts validation results so you can review before merging.</p>
+				</div>
+			</details>
+
+			<details class="faq-item">
+				<summary>What happens when it doesn't know what to do?</summary>
+				<div class="faq-answer">
+					<p>It does nothing. Silence is built into the design — the agent only acts on events it has explicit rules for. Unknown event types, ambiguous requests, and bot-generated events are all ignored. For build requests, if it can't push code, it posts a detailed comment explaining what it tried and what needs human attention.</p>
+				</div>
+			</details>
+		</div>
+
+		<div class="faq-category">
+			<h2>Customization</h2>
+
+			<details class="faq-item">
+				<summary>How do I change what the bot does?</summary>
+				<div class="faq-answer">
+					<p>Edit the skill files in <code>skills/</code>. Each skill is a Markdown file with instructions the agent follows. For example:</p>
+					<ul>
+						<li><code>skills/webhook-github/SKILL.md</code> — controls how webhook events are handled</li>
+						<li><code>skills/github/github-pr-workflow/SKILL.md</code> — PR lifecycle (branch, commit, push, merge)</li>
+						<li><code>skills/github/github-auth/SKILL.md</code> — authentication setup</li>
+					</ul>
+					<p>Skills are plain text — no code to write. Change the instructions and the agent changes its behavior.</p>
+				</div>
+			</details>
+
+			<details class="faq-item">
+				<summary>Can I add my own skills?</summary>
+				<div class="faq-answer">
+					<p>Yes. Create a new directory under <code>skills/</code> with a <code>SKILL.md</code> file. Follow the <a href="https://hermes-agent.nousresearch.com/docs/user-guide/skills" target="_blank" rel="noopener">Hermes skills format</a> — name, description, tags in the frontmatter, instructions in the body. The agent discovers new skills automatically.</p>
+				</div>
+			</details>
+
+			<details class="faq-item">
+				<summary>How do I add more repos?</summary>
+				<div class="faq-answer">
+					<p>Just install the GitHub App on additional repos — no code changes needed. The bot handles all installed repos automatically. If you want different behavior per repo, you'd need to add conditional logic to the skill files (check <code>repository.full_name</code> in the webhook payload).</p>
+				</div>
+			</details>
+		</div>
+
+		<div class="faq-category">
+			<h2>Operations</h2>
+
+			<details class="faq-item">
+				<summary>How much does it cost to run?</summary>
+				<div class="faq-answer">
+					<p>The main cost is LLM API usage. Each issue triage or PR review is roughly one LLM call. For a repo with a few events per day, expect cents per day. Build requests (cloning, editing, testing) use more tokens but are less frequent.</p>
+					<p>Modal sandbox compute is billed per-second at ~$0.10/hr for the default VM size. A typical build request uses 5-15 minutes of compute.</p>
+					<p>The agent itself is free and open-source.</p>
+				</div>
+			</details>
+
+			<details class="faq-item">
+				<summary>What if the LLM provider goes down?</summary>
+				<div class="faq-answer">
+					<p>Configure a <code>fallback_model</code> in <code>config.yaml</code>. When your primary provider returns 429 (rate limit), 503 (service error), or 529 (overload), Hermes automatically switches to the fallback. Webhook events are retried by GitHub if your endpoint doesn't respond.</p>
+				</div>
+			</details>
+
+			<details class="faq-item">
+				<summary>Is there a risk of the bot going rogue?</summary>
+				<div class="faq-answer">
+					<p>The bot can only do what its GitHub App permissions allow. It can't delete repos, manage org settings, or access repos where it's not installed. Build requests only trigger when a maintainer explicitly @mentions the bot. All actions are logged as session trajectories in <code>logs/</code>.</p>
+					<p>For extra safety: install the App with read-only Contents permission if you don't want the bot pushing code, and only grant write access to Issues and PRs.</p>
+				</div>
+			</details>
+		</div>
+
+	</section>
+
+	<footer>
+		<div class="footer-content">
+			<img src="/logo.png" alt="Last Light" width="32" height="32" />
+			<div class="footer-links">
+				<a href="/">Home</a>
+				<span class="footer-sep">/</span>
+				<a href="/run-it">Run It for Real</a>
+				<span class="footer-sep">/</span>
+				<a href="/faq">FAQ</a>
+				<span class="footer-sep">/</span>
+				<a href="https://github.com/users/cliftonc/projects/4" target="_blank" rel="noopener">Roadmap</a>
+				<span class="footer-sep">/</span>
+				<a href="https://github.com/cliftonc/lastlight" target="_blank" rel="noopener">Source</a>
+			</div>
+			<p class="footer-meta">MIT License. Built with <a href="https://hermes-agent.nousresearch.com/" target="_blank" rel="noopener">Hermes Agent</a>.</p>
+		</div>
+	</footer>
+
+</body>
+</html>
+
+<style is:global>
+	:root {
+		--gold: #F0B429;
+		--orange: #E8752A;
+		--teal: #1A7A8A;
+		--teal-dark: #135E6B;
+		--navy: #1B2735;
+		--bg: #0C1117;
+		--bg-card: #141B24;
+		--bg-card-hover: #1A2332;
+		--border: #1E2A38;
+		--text: #C9D1D9;
+		--text-muted: #7D8694;
+		--text-bright: #ECEFF4;
+		--mono: 'JetBrains Mono', monospace;
+		--sans: 'Inter', -apple-system, sans-serif;
+	}
+
+	* { margin: 0; padding: 0; box-sizing: border-box; }
+	html { scroll-behavior: smooth; }
+
+	body {
+		background: var(--bg);
+		color: var(--text);
+		font-family: var(--sans);
+		line-height: 1.6;
+		-webkit-font-smoothing: antialiased;
+	}
+
+	a { color: var(--gold); text-decoration: none; transition: color 0.2s; }
+	a:hover { color: var(--orange); }
+	h1, h2, h3 { color: var(--text-bright); font-weight: 600; }
+
+	code {
+		font-family: var(--mono);
+		font-size: 0.85em;
+		background: var(--navy);
+		padding: 0.15em 0.4em;
+		border-radius: 4px;
+		color: var(--gold);
+	}
+
+	nav {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1.25rem 2rem;
+		max-width: 1100px;
+		margin: 0 auto;
+	}
+
+	.nav-logo {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		font-weight: 600;
+		color: var(--text-bright);
+		font-size: 1rem;
+	}
+
+	.nav-logo:hover { color: var(--gold); }
+
+	.nav-links {
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+	}
+
+	.nav-links a {
+		color: var(--text-muted);
+		font-size: 0.88rem;
+		font-weight: 500;
+		transition: color 0.2s;
+	}
+
+	.nav-links a:hover { color: var(--text-bright); }
+
+	.gh-link {
+		color: var(--text-muted);
+		display: flex;
+		align-items: center;
+		padding: 0.4rem;
+		border-radius: 6px;
+		transition: color 0.2s, background 0.2s;
+	}
+
+	.gh-link:hover {
+		color: var(--text-bright);
+		background: var(--bg-card);
+	}
+
+	section {
+		max-width: 1000px;
+		margin: 0 auto;
+		padding: 3rem 2rem;
+	}
+
+	section h2 {
+		font-size: 1.6rem;
+		margin-bottom: 1rem;
+		letter-spacing: -0.01em;
+	}
+
+	.accent { color: var(--gold); }
+
+	/* Page header */
+	.page-header {
+		max-width: 1000px;
+		margin: 0 auto;
+		padding: 4rem 2rem 1rem;
+	}
+
+	.page-header h1 {
+		font-size: clamp(1.8rem, 4vw, 2.5rem);
+		margin-bottom: 1rem;
+		letter-spacing: -0.02em;
+	}
+
+	.page-header .subtitle {
+		font-size: 1.1rem;
+		color: var(--text-muted);
+		max-width: 600px;
+		line-height: 1.65;
+	}
+
+	/* FAQ */
+	.faq-section {
+		padding-top: 0;
+	}
+
+	.faq-category {
+		margin-bottom: 2.5rem;
+	}
+
+	.faq-category h2 {
+		font-size: 1.15rem;
+		color: var(--teal);
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		margin-bottom: 1rem;
+		padding-bottom: 0.5rem;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.faq-item {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		margin-bottom: 0.5rem;
+		transition: border-color 0.25s;
+	}
+
+	.faq-item:hover {
+		border-color: #2A3A4D;
+	}
+
+	.faq-item[open] {
+		border-color: var(--teal-dark);
+	}
+
+	.faq-item summary {
+		padding: 1rem 1.25rem;
+		cursor: pointer;
+		font-weight: 500;
+		font-size: 0.95rem;
+		color: var(--text-bright);
+		list-style: none;
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.faq-item summary::-webkit-details-marker { display: none; }
+
+	.faq-item summary::before {
+		content: '+';
+		font-family: var(--mono);
+		font-size: 1.1rem;
+		color: var(--teal);
+		flex-shrink: 0;
+		width: 1.25rem;
+		text-align: center;
+		transition: transform 0.2s;
+	}
+
+	.faq-item[open] summary::before {
+		content: '\2212';
+	}
+
+	.faq-answer {
+		padding: 0 1.25rem 1.25rem 3.25rem;
+	}
+
+	.faq-answer p {
+		font-size: 0.9rem;
+		color: var(--text-muted);
+		line-height: 1.7;
+		margin-bottom: 0.6rem;
+	}
+
+	.faq-answer ol, .faq-answer ul {
+		padding-left: 1.25rem;
+		margin: 0.5rem 0;
+	}
+
+	.faq-answer li {
+		font-size: 0.88rem;
+		color: var(--text-muted);
+		line-height: 1.65;
+		margin-bottom: 0.3rem;
+	}
+
+	/* Footer */
+	footer {
+		border-top: 1px solid var(--border);
+		padding: 2rem;
+		margin-top: 2rem;
+	}
+
+	.footer-content {
+		max-width: 1000px;
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.footer-links {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.82rem;
+	}
+
+	.footer-links a {
+		color: var(--text-muted);
+		transition: color 0.2s;
+	}
+
+	.footer-links a:hover {
+		color: var(--gold);
+	}
+
+	.footer-sep {
+		color: var(--border);
+		font-size: 0.75rem;
+	}
+
+	.footer-meta {
+		font-size: 0.78rem;
+		color: var(--text-muted);
+		margin-left: auto;
+	}
+
+	@media (max-width: 640px) {
+		.nav-links { gap: 0.75rem; }
+		.nav-links a { font-size: 0.8rem; }
+		.footer-content { flex-direction: column; align-items: flex-start; }
+		.footer-meta { margin-left: 0; }
+	}
+</style>

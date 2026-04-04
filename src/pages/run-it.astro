@@ -1,0 +1,549 @@
+---
+// Last Light — Run it for real
+---
+
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="icon" type="image/png" href="/logo.png" />
+	<title>Run It for Real — Last Light</title>
+	<meta name="description" content="Deploy Last Light for real — production checklist, hosting options, and operational tips for running your GitHub maintenance agent." />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+	<nav>
+		<a href="/" class="nav-logo">
+			<img src="/logo.png" alt="" width="24" height="24" style="object-fit: contain;" /> Last Light
+		</a>
+		<div class="nav-links">
+			<a href="/#features">Features</a>
+			<a href="/#get-started">Get Started</a>
+			<a href="/run-it">Run It for Real</a>
+			<a href="/faq">FAQ</a>
+			<a href="https://github.com/cliftonc/lastlight" class="gh-link" target="_blank" rel="noopener">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+			</a>
+		</div>
+	</nav>
+
+	<section class="page-header">
+		<h1>Run it <span class="accent">for real</span></h1>
+		<p class="subtitle">You've followed the Get Started guide and it works locally. Now you want it running 24/7, handling real webhooks, on real repos. Here's how.</p>
+	</section>
+
+	<section>
+		<h2>Production checklist</h2>
+		<div class="checklist">
+			<div class="check-item">
+				<span class="check-icon">1</span>
+				<div>
+					<h3>Pick a host</h3>
+					<p>Last Light needs a long-running process with a public URL for webhooks. Good options:</p>
+					<div class="options-grid">
+						<div class="option-card">
+							<h4>VPS / Dedicated</h4>
+							<p>Any Linux box works. Run inside <code>tmux</code> or use <code>systemd</code>. Cheapest option — a $5/mo VPS handles dozens of repos.</p>
+						</div>
+						<div class="option-card">
+							<h4>Docker</h4>
+							<p>Use the built-in Docker backend for isolation. Mount your <code>.env</code> and private key. Works on any container host.</p>
+						</div>
+						<div class="option-card">
+							<h4>Modal (recommended)</h4>
+							<p>Cloud sandbox with auto-scaling. The terminal runs in Modal VMs while the agent runs on your host. Best isolation with zero container management.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="check-item">
+				<span class="check-icon">2</span>
+				<div>
+					<h3>Expose webhooks</h3>
+					<p>GitHub needs to reach your webhook endpoint. The default is <code>http://your-host:8644/webhooks/github</code>.</p>
+					<ul>
+						<li><strong>Public server:</strong> Open port 8644, or reverse-proxy through nginx/Caddy with TLS.</li>
+						<li><strong>Behind NAT:</strong> Use <a href="https://ngrok.com" target="_blank" rel="noopener">ngrok</a>, <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/" target="_blank" rel="noopener">Cloudflare Tunnel</a>, or <a href="https://tailscale.com/kb/1223/funnel" target="_blank" rel="noopener">Tailscale Funnel</a> to get a public URL.</li>
+					</ul>
+					<p class="section-note">Set your webhook URL in the GitHub App settings, and the same secret in both places (<code>WEBHOOK_SECRET</code> in <code>.env</code>, and the GitHub App webhook config).</p>
+				</div>
+			</div>
+
+			<div class="check-item">
+				<span class="check-icon">3</span>
+				<div>
+					<h3>Secure your secrets</h3>
+					<p>Your <code>.env</code> contains API keys and your GitHub App private key. In production:</p>
+					<ul>
+						<li>Restrict file permissions: <code>chmod 600 .env *.pem</code></li>
+						<li>Don't commit secrets — both are in <code>.gitignore</code> by default</li>
+						<li>Consider a secrets manager (Vault, AWS Secrets Manager, etc.) for team deployments</li>
+						<li>The GitHub App private key is the most sensitive asset — it can act as your bot on any installed repo</li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="check-item">
+				<span class="check-icon">4</span>
+				<div>
+					<h3>Install the GitHub App on your repos</h3>
+					<p>Go to your GitHub App's settings page and install it on the repos (or org) you want Last Light to manage. The bot only sees repos where it's installed.</p>
+					<p>Required permissions: Issues (read/write), Pull Requests (read/write), Contents (read/write), Metadata (read).</p>
+				</div>
+			</div>
+
+			<div class="check-item">
+				<span class="check-icon">5</span>
+				<div>
+					<h3>Start the gateway</h3>
+					<p>For production, run the gateway (not interactive CLI):</p>
+					<pre><code>./lastlight gateway</code></pre>
+					<p>This starts the webhook listener, Discord bot (if configured), and cron scheduler. To keep it running:</p>
+					<pre><code># With systemd (recommended)
+sudo systemctl enable lastlight
+sudo systemctl start lastlight
+
+# Or with tmux
+tmux new -s lastlight './lastlight gateway'
+
+# Or with Docker
+docker compose up -d</code></pre>
+				</div>
+			</div>
+
+			<div class="check-item">
+				<span class="check-icon">6</span>
+				<div>
+					<h3>Verify it's working</h3>
+					<p>Open an issue on one of your installed repos. Last Light should triage it within seconds (webhooks) or minutes (cron). Check:</p>
+					<ul>
+						<li>Labels were applied</li>
+						<li>The bot left a triage comment</li>
+						<li>Logs show the event was received: <code>tail -f logs/</code></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section>
+		<h2>Operational tips</h2>
+		<div class="tips-grid">
+			<div class="tip-card">
+				<h3>Token refresh</h3>
+				<p>GitHub App tokens expire hourly. The MCP server handles this automatically — no action needed. If you see auth errors in logs, restart the agent to force a fresh token.</p>
+			</div>
+			<div class="tip-card">
+				<h3>Rate limits</h3>
+				<p>GitHub App installations get 5,000 API calls/hour. For most repos that's plenty. If you hit limits, increase the cron interval or reduce the number of repos per installation.</p>
+			</div>
+			<div class="tip-card">
+				<h3>LLM costs</h3>
+				<p>Each issue triage or PR review is one LLM call. At typical usage (a few events/day), costs are minimal. Set a fallback model in <code>config.yaml</code> to avoid downtime when your primary provider rate-limits.</p>
+			</div>
+			<div class="tip-card">
+				<h3>Logs & debugging</h3>
+				<p>Session logs are saved to <code>logs/</code> as JSON trajectories. Each webhook event gets its own session file. Use these to debug unexpected behavior or replay events.</p>
+			</div>
+			<div class="tip-card">
+				<h3>Multiple repos</h3>
+				<p>One Last Light instance handles all repos where the GitHub App is installed. No per-repo configuration needed — skills apply universally. Customize behavior by editing the skill files.</p>
+			</div>
+			<div class="tip-card">
+				<h3>Updating</h3>
+				<p>Pull the latest from the repo and restart. Hermes itself updates separately via <code>hermes update</code>. Skills are versioned — check the changelog for breaking changes.</p>
+			</div>
+		</div>
+	</section>
+
+	<section>
+		<h2>Example: systemd service</h2>
+		<p class="section-desc">A minimal systemd unit file to keep Last Light running on a Linux server.</p>
+		<pre><code>[Unit]
+Description=Last Light GitHub Agent
+After=network.target
+
+[Service]
+Type=simple
+User=lastlight
+WorkingDirectory=/opt/lastlight
+ExecStart=/opt/lastlight/lastlight gateway
+Restart=on-failure
+RestartSec=10
+Environment=HOME=/opt/lastlight
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+	</section>
+
+	<footer>
+		<div class="footer-content">
+			<img src="/logo.png" alt="Last Light" width="32" height="32" />
+			<div class="footer-links">
+				<a href="/">Home</a>
+				<span class="footer-sep">/</span>
+				<a href="/run-it">Run It for Real</a>
+				<span class="footer-sep">/</span>
+				<a href="/faq">FAQ</a>
+				<span class="footer-sep">/</span>
+				<a href="https://github.com/users/cliftonc/projects/4" target="_blank" rel="noopener">Roadmap</a>
+				<span class="footer-sep">/</span>
+				<a href="https://github.com/cliftonc/lastlight" target="_blank" rel="noopener">Source</a>
+			</div>
+			<p class="footer-meta">MIT License. Built with <a href="https://hermes-agent.nousresearch.com/" target="_blank" rel="noopener">Hermes Agent</a>.</p>
+		</div>
+	</footer>
+
+</body>
+</html>
+
+<style is:global>
+	:root {
+		--gold: #F0B429;
+		--orange: #E8752A;
+		--teal: #1A7A8A;
+		--teal-dark: #135E6B;
+		--navy: #1B2735;
+		--bg: #0C1117;
+		--bg-card: #141B24;
+		--bg-card-hover: #1A2332;
+		--border: #1E2A38;
+		--text: #C9D1D9;
+		--text-muted: #7D8694;
+		--text-bright: #ECEFF4;
+		--mono: 'JetBrains Mono', monospace;
+		--sans: 'Inter', -apple-system, sans-serif;
+	}
+
+	* { margin: 0; padding: 0; box-sizing: border-box; }
+	html { scroll-behavior: smooth; }
+
+	body {
+		background: var(--bg);
+		color: var(--text);
+		font-family: var(--sans);
+		line-height: 1.6;
+		-webkit-font-smoothing: antialiased;
+	}
+
+	a { color: var(--gold); text-decoration: none; transition: color 0.2s; }
+	a:hover { color: var(--orange); }
+	h1, h2, h3 { color: var(--text-bright); font-weight: 600; }
+
+	code {
+		font-family: var(--mono);
+		font-size: 0.85em;
+		background: var(--navy);
+		padding: 0.15em 0.4em;
+		border-radius: 4px;
+		color: var(--gold);
+	}
+
+	pre {
+		background: var(--navy);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		padding: 1rem 1.25rem;
+		overflow-x: auto;
+		margin: 0.75rem 0;
+	}
+
+	pre code {
+		background: none;
+		padding: 0;
+		font-size: 0.82rem;
+		color: var(--text);
+		line-height: 1.7;
+	}
+
+	nav {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1.25rem 2rem;
+		max-width: 1100px;
+		margin: 0 auto;
+	}
+
+	.nav-logo {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		font-weight: 600;
+		color: var(--text-bright);
+		font-size: 1rem;
+	}
+
+	.nav-logo:hover { color: var(--gold); }
+
+	.nav-links {
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+	}
+
+	.nav-links a {
+		color: var(--text-muted);
+		font-size: 0.88rem;
+		font-weight: 500;
+		transition: color 0.2s;
+	}
+
+	.nav-links a:hover { color: var(--text-bright); }
+
+	.gh-link {
+		color: var(--text-muted);
+		display: flex;
+		align-items: center;
+		padding: 0.4rem;
+		border-radius: 6px;
+		transition: color 0.2s, background 0.2s;
+	}
+
+	.gh-link:hover {
+		color: var(--text-bright);
+		background: var(--bg-card);
+	}
+
+	section {
+		max-width: 1000px;
+		margin: 0 auto;
+		padding: 3rem 2rem;
+	}
+
+	section h2 {
+		font-size: 1.6rem;
+		margin-bottom: 1rem;
+		letter-spacing: -0.01em;
+	}
+
+	.accent { color: var(--gold); }
+
+	.section-desc {
+		color: var(--text-muted);
+		max-width: 600px;
+		margin-bottom: 1.5rem;
+		line-height: 1.65;
+	}
+
+	.section-note {
+		background: var(--bg-card);
+		border-left: 3px solid var(--teal);
+		padding: 0.75rem 1rem;
+		border-radius: 0 8px 8px 0;
+		font-size: 0.88rem;
+		color: var(--text-muted);
+		margin-top: 0.75rem;
+		line-height: 1.6;
+	}
+
+	/* Page header */
+	.page-header {
+		max-width: 1000px;
+		margin: 0 auto;
+		padding: 4rem 2rem 1rem;
+	}
+
+	.page-header h1 {
+		font-size: clamp(1.8rem, 4vw, 2.5rem);
+		margin-bottom: 1rem;
+		letter-spacing: -0.02em;
+	}
+
+	.page-header .subtitle {
+		font-size: 1.1rem;
+		color: var(--text-muted);
+		max-width: 600px;
+		line-height: 1.65;
+	}
+
+	/* Checklist */
+	.checklist {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+		margin-top: 1.5rem;
+	}
+
+	.check-item {
+		display: flex;
+		gap: 1.25rem;
+		align-items: flex-start;
+	}
+
+	.check-icon {
+		flex-shrink: 0;
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		background: var(--teal);
+		color: var(--text-bright);
+		font-weight: 600;
+		font-size: 0.85rem;
+		font-family: var(--mono);
+	}
+
+	.check-item h3 {
+		font-size: 1.05rem;
+		margin-bottom: 0.4rem;
+	}
+
+	.check-item p {
+		font-size: 0.9rem;
+		color: var(--text-muted);
+		line-height: 1.6;
+		margin-bottom: 0.5rem;
+	}
+
+	.check-item ul {
+		list-style: none;
+		padding: 0;
+		margin: 0.5rem 0;
+	}
+
+	.check-item ul li {
+		font-size: 0.88rem;
+		color: var(--text-muted);
+		line-height: 1.65;
+		padding-left: 1.25rem;
+		position: relative;
+	}
+
+	.check-item ul li::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0.55em;
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--teal);
+	}
+
+	/* Options grid */
+	.options-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.75rem;
+		margin-top: 0.75rem;
+	}
+
+	.option-card {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: 1.25rem;
+		transition: border-color 0.25s;
+	}
+
+	.option-card:hover {
+		border-color: #2A3A4D;
+	}
+
+	.option-card h4 {
+		color: var(--text-bright);
+		font-size: 0.9rem;
+		margin-bottom: 0.35rem;
+	}
+
+	.option-card p {
+		font-size: 0.82rem;
+		color: var(--text-muted);
+		line-height: 1.55;
+	}
+
+	/* Tips grid */
+	.tips-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1rem;
+		margin-top: 1.25rem;
+	}
+
+	.tip-card {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: 1.5rem;
+		transition: border-color 0.25s, background 0.25s;
+	}
+
+	.tip-card:hover {
+		border-color: #2A3A4D;
+		background: var(--bg-card-hover);
+	}
+
+	.tip-card h3 {
+		font-size: 0.95rem;
+		margin-bottom: 0.4rem;
+	}
+
+	.tip-card p {
+		font-size: 0.85rem;
+		color: var(--text-muted);
+		line-height: 1.6;
+	}
+
+	/* Footer */
+	footer {
+		border-top: 1px solid var(--border);
+		padding: 2rem;
+		margin-top: 2rem;
+	}
+
+	.footer-content {
+		max-width: 1000px;
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.footer-links {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.82rem;
+	}
+
+	.footer-links a {
+		color: var(--text-muted);
+		transition: color 0.2s;
+	}
+
+	.footer-links a:hover {
+		color: var(--gold);
+	}
+
+	.footer-sep {
+		color: var(--border);
+		font-size: 0.75rem;
+	}
+
+	.footer-meta {
+		font-size: 0.78rem;
+		color: var(--text-muted);
+		margin-left: auto;
+	}
+
+	.footer-content p {
+		font-size: 0.82rem;
+		color: var(--text-muted);
+	}
+
+	@media (max-width: 640px) {
+		.options-grid { grid-template-columns: 1fr; }
+		.tips-grid { grid-template-columns: 1fr; }
+		.nav-links { gap: 0.75rem; }
+		.nav-links a { font-size: 0.8rem; }
+		.footer-content { flex-direction: column; align-items: flex-start; }
+		.footer-meta { margin-left: 0; }
+	}
+</style>
