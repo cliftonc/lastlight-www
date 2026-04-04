@@ -1,0 +1,785 @@
+---
+// Last Light — GitHub maintenance agent
+---
+
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="icon" type="image/png" href="/logo.png" />
+	<title>Last Light — GitHub Maintenance Agent</title>
+	<meta name="description" content="An open-source agent that keeps the lights on in your GitHub repos. Triages issues, reviews PRs, monitors repo health — so you can focus elsewhere." />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+	<!-- Hero -->
+	<header class="hero">
+		<div class="hero-content">
+			<img src="/logo.png" alt="Last Light logo" class="hero-logo" />
+			<p class="hero-name">Last Light</p>
+			<h1>Keep the lights on <span class="accent">after you've moved on</span></h1>
+			<p class="subtitle">
+				An open-source agent that looks after repos in maintenance mode.
+				Triages issues, reviews PRs, chases down stale items — so you can focus on what's next.
+			</p>
+			<div class="hero-actions">
+				<a href="#get-started" class="btn btn-primary">Get Started</a>
+				<a href="https://github.com/cliftonc/lastlight" class="btn btn-ghost" target="_blank" rel="noopener">View Source</a>
+				<a href="https://github.com/users/cliftonc/projects/4" class="btn btn-ghost" target="_blank" rel="noopener">Roadmap</a>
+			</div>
+		</div>
+	</header>
+
+	<!-- What it does -->
+	<section class="features" id="features">
+		<h2>Keeping the lights on</h2>
+		<div class="feature-grid">
+			<div class="feature-card">
+				<div class="feature-icon">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+				</div>
+				<h3>Issue Triage</h3>
+				<p>Labels, deduplicates, and chases missing info — every 15 minutes, rain or shine.</p>
+			</div>
+			<div class="feature-card">
+				<div class="feature-icon">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+				</div>
+				<h3>PR Review</h3>
+				<p>Reads the diff, leaves honest feedback. Critical issues first, nits last. No feelings spared.</p>
+			</div>
+			<div class="feature-card">
+				<div class="feature-icon">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+				</div>
+				<h3>Health Reports</h3>
+				<p>Monday morning summary of what's piling up, what's gone stale, and what needs you.</p>
+			</div>
+			<div class="feature-card">
+				<div class="feature-icon">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+				</div>
+				<h3>Runs Itself</h3>
+				<p>Cron jobs run triage, reviews, and reports on autopilot. Set it up once, then move on.</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- How it works -->
+	<section class="how-it-works">
+		<h2>How it works</h2>
+		<p class="section-desc">
+			Built on <a href="https://hermes-agent.nousresearch.com/" target="_blank" rel="noopener">Hermes Agent</a>
+			with a custom MCP server packing 28 GitHub tools.
+			Authenticates as its own GitHub App — every action is clearly from the bot, not you.
+		</p>
+		<div class="architecture">
+			<div class="arch-step">
+				<span class="step-num">1</span>
+				<div>
+					<strong>Point it at your repos</strong>
+					<p>List what you want watched in <code>.hermes.md</code></p>
+				</div>
+			</div>
+			<div class="arch-step">
+				<span class="step-num">2</span>
+				<div>
+					<strong>You move on to other things</strong>
+					<p>Cron jobs keep running — scanning for new issues, unreviewed PRs, stale items</p>
+				</div>
+			</div>
+			<div class="arch-step">
+				<span class="step-num">3</span>
+				<div>
+					<strong>Last Light gets to work</strong>
+					<p>Labels, reviews, closes duplicates, writes reports</p>
+				</div>
+			</div>
+			<div class="arch-step">
+				<span class="step-num">4</span>
+				<div>
+					<strong>The repo stays healthy</strong>
+					<p>Everything happens on GitHub — comments, labels, reviews. No extra dashboard to check</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Get started -->
+	<section class="get-started" id="get-started">
+		<h2>Light it up</h2>
+
+		<div class="step-block">
+			<h3><span class="step-label">Step 1</span> Install Hermes Agent</h3>
+			<pre><code>curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash
+source ~/.zshrc</code></pre>
+		</div>
+
+		<div class="step-block">
+			<h3><span class="step-label">Step 2</span> Clone Last Light</h3>
+			<pre><code>git clone https://github.com/cliftonc/lastlight.git
+cd lastlight</code></pre>
+		</div>
+
+		<div class="step-block">
+			<h3><span class="step-label">Step 3</span> Create a GitHub App</h3>
+			<p>
+				Head to <a href="https://github.com/settings/apps/new" target="_blank" rel="noopener">github.com/settings/apps/new</a> and create an app with these permissions:
+			</p>
+			<ul class="permissions-list">
+				<li><strong>Issues</strong> — Read & Write</li>
+				<li><strong>Pull Requests</strong> — Read & Write</li>
+				<li><strong>Contents</strong> — Read & Write</li>
+				<li><strong>Metadata</strong> — Read</li>
+			</ul>
+			<p>Generate a private key, download the <code>.pem</code> file, and install the app on your repos.</p>
+		</div>
+
+		<div class="step-block">
+			<h3><span class="step-label">Step 4</span> Configure</h3>
+			<pre><code>cp .env.example .env</code></pre>
+			<p>Fill in your GitHub App credentials:</p>
+			<pre><code>GITHUB_APP_ID=123456
+GITHUB_APP_PRIVATE_KEY_PATH=./your-app.private-key.pem
+GITHUB_APP_INSTALLATION_ID=789012</code></pre>
+			<p>Then add your repos to <code>.hermes.md</code>:</p>
+			<pre><code>## Managed Repositories
+- yourname/your-repo
+- yourname/another-repo</code></pre>
+		</div>
+
+		<div class="step-block">
+			<h3><span class="step-label">Step 5</span> Pick a terminal backend</h3>
+			<p>Last Light runs commands through Hermes Agent's terminal. By default it uses <code>local</code> — commands run directly on your machine. For isolation or remote execution, pick a different backend in <code>config.yaml</code>:</p>
+
+			<div class="backends-grid">
+				<div class="backend-card">
+					<h4>Local</h4>
+					<p>Commands run on your machine. No setup, no isolation. Good for getting started.</p>
+					<pre><code>terminal:
+  backend: local</code></pre>
+				</div>
+				<div class="backend-card">
+					<h4>Docker</h4>
+					<p>Sandboxed container with dropped capabilities, PID limits, and tmpfs. Needs Docker installed.</p>
+					<pre><code>terminal:
+  backend: docker</code></pre>
+				</div>
+				<div class="backend-card">
+					<h4>Modal</h4>
+					<p>Cloud VM sandbox. Ephemeral, scalable, great for evals. Needs a <a href="https://modal.com" target="_blank" rel="noopener">Modal</a> account.</p>
+					<pre><code>terminal:
+  backend: modal</code></pre>
+					<p>Set <code>MODAL_TOKEN_ID</code> and <code>MODAL_TOKEN_SECRET</code> in <code>.env</code>.</p>
+				</div>
+				<div class="backend-card">
+					<h4>SSH</h4>
+					<p>Run on a remote server. Persistent shell with connection reuse. Good for beefy hardware.</p>
+					<pre><code>terminal:
+  backend: ssh</code></pre>
+					<p>Set <code>TERMINAL_SSH_HOST</code> and <code>TERMINAL_SSH_USER</code> in <code>.env</code>.</p>
+				</div>
+				<div class="backend-card">
+					<h4>Daytona</h4>
+					<p>Managed cloud dev environment with stop/resume. Needs a <a href="https://daytona.io" target="_blank" rel="noopener">Daytona</a> API key.</p>
+					<pre><code>terminal:
+  backend: daytona</code></pre>
+				</div>
+				<div class="backend-card">
+					<h4>Singularity</h4>
+					<p>For HPC clusters and shared machines where Docker isn't available. Uses Apptainer/Singularity.</p>
+					<pre><code>terminal:
+  backend: singularity</code></pre>
+				</div>
+			</div>
+
+			<p>All container backends support resource limits:</p>
+			<pre><code>terminal:
+  container_cpu: 1         # CPU cores
+  container_memory: 5120   # Memory in MB
+  container_disk: 51200    # Disk in MB
+  container_persistent: true</code></pre>
+		</div>
+
+		<div class="step-block">
+			<h3><span class="step-label">Step 6</span> Run it</h3>
+			<pre><code>./lastlight</code></pre>
+			<p>That's it. You can also run single commands:</p>
+			<pre><code>./lastlight chat -q "Review the latest PR on yourname/your-repo"
+./lastlight chat -q "Triage open issues on yourname/another-repo"</code></pre>
+		</div>
+	</section>
+
+	<!-- Built-in skills -->
+	<section class="skills">
+		<h2>Tricks up its sleeve</h2>
+		<div class="skills-grid">
+			<div class="skill">
+				<code>/pr-review</code>
+				<p>Review a PR with structured, severity-ranked feedback</p>
+			</div>
+			<div class="skill">
+				<code>/issue-triage</code>
+				<p>Label, deduplicate, and prioritize issues</p>
+			</div>
+			<div class="skill">
+				<code>/repo-health</code>
+				<p>Generate a health report with metrics and action items</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- Schedule -->
+	<section class="schedule">
+		<h2>On autopilot</h2>
+		<p class="section-desc">These run automatically, out of the box:</p>
+		<div class="schedule-table">
+			<div class="schedule-row header">
+				<span>Job</span>
+				<span>Frequency</span>
+			</div>
+			<div class="schedule-row">
+				<span>Triage new issues</span>
+				<span class="freq">Every 15 min</span>
+			</div>
+			<div class="schedule-row">
+				<span>Check PRs awaiting review</span>
+				<span class="freq">Every 30 min</span>
+			</div>
+			<div class="schedule-row">
+				<span>Refresh GitHub token</span>
+				<span class="freq">Every 50 min</span>
+			</div>
+			<div class="schedule-row">
+				<span>Weekly health report</span>
+				<span class="freq">Mondays 9am</span>
+			</div>
+		</div>
+	</section>
+
+	<!-- Footer -->
+	<footer>
+		<div class="footer-content">
+			<img src="/logo.png" alt="Last Light" width="32" height="32" />
+			<p>MIT License. Built with <a href="https://hermes-agent.nousresearch.com/" target="_blank" rel="noopener">Hermes Agent</a>. <a href="https://github.com/users/cliftonc/projects/4" target="_blank" rel="noopener">Roadmap</a>.</p>
+		</div>
+	</footer>
+
+</body>
+</html>
+
+<style is:global>
+	:root {
+		--gold: #F0B429;
+		--orange: #E8752A;
+		--teal: #1A7A8A;
+		--teal-dark: #135E6B;
+		--navy: #1B2735;
+		--bg: #0C1117;
+		--bg-card: #141B24;
+		--bg-card-hover: #1A2332;
+		--border: #1E2A38;
+		--text: #C9D1D9;
+		--text-muted: #7D8694;
+		--text-bright: #ECEFF4;
+		--mono: 'JetBrains Mono', monospace;
+		--sans: 'Inter', -apple-system, sans-serif;
+	}
+
+	* {
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+	}
+
+	html {
+		scroll-behavior: smooth;
+	}
+
+	body {
+		background: var(--bg);
+		color: var(--text);
+		font-family: var(--sans);
+		line-height: 1.6;
+		-webkit-font-smoothing: antialiased;
+	}
+
+	a {
+		color: var(--gold);
+		text-decoration: none;
+		transition: color 0.2s;
+	}
+
+	a:hover {
+		color: var(--orange);
+	}
+
+	h1, h2, h3 {
+		color: var(--text-bright);
+		font-weight: 600;
+	}
+
+	code {
+		font-family: var(--mono);
+		font-size: 0.85em;
+		background: var(--navy);
+		padding: 0.15em 0.4em;
+		border-radius: 4px;
+		color: var(--gold);
+	}
+
+	pre {
+		background: var(--navy);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		padding: 1rem 1.25rem;
+		overflow-x: auto;
+		margin: 0.75rem 0;
+	}
+
+	pre code {
+		background: none;
+		padding: 0;
+		font-size: 0.82rem;
+		color: var(--text);
+		line-height: 1.7;
+	}
+
+	/* Nav */
+	nav {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1.25rem 2rem;
+		max-width: 1100px;
+		margin: 0 auto;
+	}
+
+	.nav-logo {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		font-weight: 600;
+		color: var(--text-bright);
+		font-size: 1rem;
+	}
+
+	.nav-logo:hover {
+		color: var(--gold);
+	}
+
+	.gh-link {
+		color: var(--text-muted);
+		display: flex;
+		align-items: center;
+		padding: 0.4rem;
+		border-radius: 6px;
+		transition: color 0.2s, background 0.2s;
+	}
+
+	.gh-link:hover {
+		color: var(--text-bright);
+		background: var(--bg-card);
+	}
+
+	/* Hero */
+	.hero {
+		min-height: 80vh;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.hero-content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		padding: 2rem;
+		max-width: 700px;
+		margin: 0 auto;
+	}
+
+	.hero-logo {
+		width: 140px;
+		height: auto;
+		margin-bottom: 1.5rem;
+		filter: drop-shadow(0 0 40px rgba(240, 180, 41, 0.15));
+	}
+
+	.hero-name {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--text-muted);
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
+		margin-bottom: 0.75rem;
+	}
+
+	h1 {
+		font-size: clamp(2rem, 5vw, 3.2rem);
+		line-height: 1.15;
+		margin-bottom: 1.25rem;
+		letter-spacing: -0.02em;
+	}
+
+	.accent {
+		color: var(--gold);
+	}
+
+	.subtitle {
+		font-size: 1.15rem;
+		color: var(--text-muted);
+		max-width: 520px;
+		margin-bottom: 2rem;
+		line-height: 1.65;
+	}
+
+	.hero-actions {
+		display: flex;
+		gap: 0.75rem;
+	}
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.65rem 1.5rem;
+		border-radius: 8px;
+		font-weight: 500;
+		font-size: 0.9rem;
+		transition: all 0.2s;
+		border: 1px solid transparent;
+	}
+
+	.btn-primary {
+		background: var(--gold);
+		color: var(--bg);
+		border-color: var(--gold);
+	}
+
+	.btn-primary:hover {
+		background: #D9A025;
+		border-color: #D9A025;
+		color: var(--bg);
+	}
+
+	.btn-ghost {
+		border-color: var(--border);
+		color: var(--text);
+	}
+
+	.btn-ghost:hover {
+		border-color: var(--text-muted);
+		color: var(--text-bright);
+	}
+
+	/* Sections */
+	section {
+		max-width: 900px;
+		margin: 0 auto;
+		padding: 3rem 2rem;
+	}
+
+	section h2 {
+		font-size: 1.6rem;
+		margin-bottom: 1rem;
+		letter-spacing: -0.01em;
+	}
+
+	.section-desc {
+		color: var(--text-muted);
+		max-width: 600px;
+		margin-bottom: 1.5rem;
+		line-height: 1.65;
+	}
+
+	/* Features */
+	.feature-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1rem;
+		margin-top: 1.25rem;
+	}
+
+	.feature-card {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: 1.5rem;
+		transition: border-color 0.25s, background 0.25s;
+	}
+
+	.feature-card:hover {
+		border-color: #2A3A4D;
+		background: var(--bg-card-hover);
+	}
+
+	.feature-icon {
+		color: var(--teal);
+		margin-bottom: 0.75rem;
+	}
+
+	.feature-card h3 {
+		font-size: 1rem;
+		margin-bottom: 0.4rem;
+	}
+
+	.feature-card p {
+		font-size: 0.88rem;
+		color: var(--text-muted);
+		line-height: 1.55;
+	}
+
+	/* How it works */
+	.architecture {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin-top: 1.25rem;
+	}
+
+	.arch-step {
+		display: flex;
+		gap: 1.25rem;
+		align-items: flex-start;
+		padding: 1.25rem;
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		transition: border-color 0.25s;
+	}
+
+	.arch-step:hover {
+		border-color: var(--teal-dark);
+	}
+
+	.step-num {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background: var(--teal-dark);
+		color: var(--text-bright);
+		font-weight: 600;
+		font-size: 0.85rem;
+	}
+
+	.arch-step strong {
+		display: block;
+		color: var(--text-bright);
+		margin-bottom: 0.2rem;
+	}
+
+	.arch-step p {
+		font-size: 0.88rem;
+		color: var(--text-muted);
+	}
+
+	/* Get started */
+	.get-started {
+		border-top: 1px solid var(--border);
+		padding-top: 3rem;
+	}
+
+	.step-block {
+		margin-bottom: 1.75rem;
+	}
+
+	.step-block h3 {
+		font-size: 1.05rem;
+		margin-bottom: 0.6rem;
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+	}
+
+	.step-label {
+		font-family: var(--mono);
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--teal);
+		background: rgba(26, 122, 138, 0.12);
+		padding: 0.2em 0.6em;
+		border-radius: 4px;
+		font-weight: 600;
+	}
+
+	.step-block p {
+		font-size: 0.9rem;
+		color: var(--text-muted);
+		margin: 0.5rem 0;
+	}
+
+	.permissions-list {
+		list-style: none;
+		margin: 0.75rem 0;
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.4rem;
+	}
+
+	.permissions-list li {
+		font-size: 0.85rem;
+		color: var(--text-muted);
+		padding: 0.4rem 0.6rem;
+		background: var(--bg-card);
+		border-radius: 6px;
+		border: 1px solid var(--border);
+	}
+
+	.permissions-list li strong {
+		color: var(--text);
+	}
+
+	/* Backends */
+	.backends-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.75rem;
+		margin: 1rem 0;
+	}
+
+	.backend-card {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		padding: 1rem 1.25rem;
+	}
+
+	.backend-card h4 {
+		color: var(--text-bright);
+		font-size: 0.9rem;
+		margin-bottom: 0.3rem;
+	}
+
+	.backend-card > p {
+		font-size: 0.82rem;
+		color: var(--text-muted);
+		line-height: 1.5;
+		margin: 0.3rem 0;
+	}
+
+	.backend-card pre {
+		margin: 0.5rem 0 0;
+		padding: 0.6rem 0.8rem;
+		font-size: 0.78rem;
+	}
+
+	/* Skills */
+	.skills-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1rem;
+		margin-top: 1.5rem;
+	}
+
+	.skill {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: 1.25rem;
+	}
+
+	.skill code {
+		font-size: 0.9rem;
+		color: var(--orange);
+		background: rgba(232, 117, 42, 0.1);
+	}
+
+	.skill p {
+		font-size: 0.85rem;
+		color: var(--text-muted);
+		margin-top: 0.5rem;
+		line-height: 1.5;
+	}
+
+	/* Schedule */
+	.schedule-table {
+		margin-top: 1.5rem;
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		overflow: hidden;
+	}
+
+	.schedule-row {
+		display: flex;
+		justify-content: space-between;
+		padding: 0.85rem 1.25rem;
+		font-size: 0.88rem;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.schedule-row:last-child {
+		border-bottom: none;
+	}
+
+	.schedule-row.header {
+		background: var(--bg-card);
+		font-weight: 600;
+		color: var(--text-bright);
+		font-size: 0.8rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.freq {
+		font-family: var(--mono);
+		font-size: 0.8rem;
+		color: var(--teal);
+	}
+
+	/* Footer */
+	footer {
+		border-top: 1px solid var(--border);
+		padding: 2rem;
+		margin-top: 2rem;
+	}
+
+	.footer-content {
+		max-width: 900px;
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.footer-content p {
+		font-size: 0.82rem;
+		color: var(--text-muted);
+	}
+
+	/* Responsive */
+	@media (max-width: 640px) {
+		.feature-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.skills-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.backends-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.permissions-list {
+			grid-template-columns: 1fr;
+		}
+
+		.hero-actions {
+			flex-direction: column;
+			width: 100%;
+		}
+
+		.btn {
+			justify-content: center;
+		}
+	}
+</style>
