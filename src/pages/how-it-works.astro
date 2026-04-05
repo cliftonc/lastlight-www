@@ -1,0 +1,1131 @@
+---
+// Last Light — How It Works
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="icon" type="image/png" href="/logo.png" />
+	<title>How It Works — Last Light</title>
+	<meta name="description" content="How Last Light uses role-based agent coordination to maintain your GitHub repos — Architect, Executor, Reviewer working in a closed loop." />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+	<Nav />
+
+	<!-- Header -->
+	<section class="page-header">
+		<h1>How it <span class="accent">works</span></h1>
+		<p class="subtitle">Last Light uses role-based agent coordination to maintain your GitHub repos. Triggered from GitHub, Discord, or Slack — three agents (Architect, Executor, Reviewer) work in a closed loop, with GitHub issues as the coordination layer.</p>
+	</section>
+
+	<!-- Inspiration -->
+	<section class="content-section">
+		<h2>Where this came from</h2>
+		<div class="callout-card">
+			<p>This approach was inspired by the <a href="https://x.com/realsigridjin/status/2039472968624185713" target="_blank" rel="noopener">claw-code article</a> by Sigrid Jin, which describes how the <strong>oh-my-codex (OmX)</strong> system rebuilt an entire codebase while the developer slept. The key insight:</p>
+			<blockquote>"The code is a byproduct. The thing worth studying is the system that produced it."</blockquote>
+			<p>The OmX system uses three tools working together: <a href="https://github.com/Yeachan-Heo/oh-my-codex" target="_blank" rel="noopener"><strong>oh-my-codex</strong></a> for workflow orchestration, <a href="https://github.com/Yeachan-Heo/clawhip" target="_blank" rel="noopener"><strong>clawhip</strong></a> for event routing, and <strong>oh-my-openagent</strong> for multi-agent coordination. We adapted the core patterns — role-based agents, closed development loops, and GitHub-first coordination — to work within the <a href="https://hermes-agent.nousresearch.com/" target="_blank" rel="noopener">Hermes Agent</a> framework.</p>
+		</div>
+	</section>
+
+	<!-- Core Principles -->
+	<section class="content-section">
+		<h2>Core principles</h2>
+		<div class="principles-grid">
+			<div class="principle-card">
+				<div class="principle-header"><div class="principle-num">1</div><h3>Roles, not prompts</h3></div>
+				<p>Each agent has a distinct <strong>identity</strong> with explicit constraints and output formats. An Architect can only read. An Executor must verify before claiming done. A Reviewer has no shared context with the builder. The role defines the behaviour — not a vague instruction to "be careful."</p>
+			</div>
+			<div class="principle-card">
+				<div class="principle-header"><div class="principle-num">2</div><h3>No agent verifies its own work</h3></div>
+				<p>The agent that writes the code never reviews it. A fresh context catches what accumulated familiarity misses. This is the same reason humans do code review — but enforced structurally, not by convention.</p>
+			</div>
+			<div class="principle-card">
+				<div class="principle-header"><div class="principle-num">3</div><h3>GitHub is the coordination layer</h3></div>
+				<p>All work is tracked through GitHub issues, regardless of where the request originates — Discord, Slack, CLI, or webhook. Build requests from chat platforms must create a GitHub issue first; the issue is the authorisation gate. Every phase posts progress. The result is a complete, auditable trail.</p>
+			</div>
+			<div class="principle-card">
+				<div class="principle-header"><div class="principle-num">4</div><h3>Evidence over assertion</h3></div>
+				<p>No "should work" or "looks correct." Every claim cites <code>file:line</code> evidence. Every completion requires fresh test output. Architects ground their analysis in code they actually read. Executors prove their changes with verification output.</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- The Three Roles -->
+	<section class="content-section">
+		<h2>The three roles</h2>
+		<p class="section-intro">Every significant piece of work flows through three specialised agents, each with strict boundaries on what they can and cannot do. Each role is defined in a <a href="https://github.com/cliftonc/lastlight/tree/main/skills/software-development" target="_blank" rel="noopener">skill file</a>.</p>
+
+		<div class="roles-grid">
+			<div class="role-card role-architect">
+				<div class="role-header">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+					<h3>Architect</h3>
+					<span class="role-badge">read-only</span>
+				</div>
+				<p class="role-desc">Diagnoses, analyses, and recommends. Forms hypotheses, then cross-checks every one against the actual code. Never edits a file.</p>
+				<div class="role-rules">
+					<p class="rule-label">Can do</p>
+					<ul>
+						<li>Read files, search code, view git history</li>
+						<li>Run read-only terminal commands</li>
+						<li>Produce structured analysis with <code>file:line</code> citations</li>
+					</ul>
+					<p class="rule-label rule-label-cant">Cannot do</p>
+					<ul>
+						<li>Edit, create, or delete any file</li>
+						<li>Commit, push, or run mutating commands</li>
+						<li>Speculate without evidence</li>
+					</ul>
+				</div>
+				<div class="role-output">
+					<p class="rule-label">Output</p>
+					<p>Summary, root cause, recommendations with effort/impact, tradeoffs table, references.</p>
+				</div>
+			</div>
+
+			<div class="role-card role-executor">
+				<div class="role-header">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+					<h3>Executor</h3>
+					<span class="role-badge role-badge-exec">full access</span>
+				</div>
+				<p class="role-desc">Implements the Architect's plan. Writes code, runs tests, commits. Keeps going until the task is fully resolved — no partial completion.</p>
+				<div class="role-rules">
+					<p class="rule-label">Can do</p>
+					<ul>
+						<li>Read, write, and edit files</li>
+						<li>Run tests, builds, and linters</li>
+						<li>Commit and push changes</li>
+					</ul>
+					<p class="rule-label rule-label-cant">Cannot do</p>
+					<ul>
+						<li>Claim "done" without fresh verification output</li>
+						<li>Broaden scope beyond the architect's plan</li>
+						<li>Skip TDD (test-driven development)</li>
+					</ul>
+				</div>
+				<div class="role-output">
+					<p class="rule-label">Output</p>
+					<p>Files changed, test results, commit hash. Uses Lore-style commits: intent-first message + <code>Tested:</code> and <code>Scope-risk:</code> trailers.</p>
+				</div>
+			</div>
+
+			<div class="role-card role-reviewer">
+				<div class="role-header">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+					<h3>Reviewer</h3>
+					<span class="role-badge">independent</span>
+				</div>
+				<p class="role-desc">Verifies the Executor's work with zero shared context. Checks the code against the Architect's plan, runs tests, reports issues. Never fixes — only reports.</p>
+				<div class="role-rules">
+					<p class="rule-label">Can do</p>
+					<ul>
+						<li>Read all files and run tests</li>
+						<li>Compare implementation against the plan</li>
+						<li>Flag security, logic, and quality issues</li>
+					</ul>
+					<p class="rule-label rule-label-cant">Cannot do</p>
+					<ul>
+						<li>Edit or fix any code</li>
+						<li>Access the Executor's reasoning or context</li>
+						<li>Approve without running verification</li>
+					</ul>
+				</div>
+				<div class="role-output">
+					<p class="rule-label">Output</p>
+					<p>Verdict: <code>APPROVED</code> or <code>REQUEST_CHANGES</code> with specific issues and <code>file:line</code> references.</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- The Loop -->
+	<section class="content-section">
+		<h2>The development loop</h2>
+		<p class="section-intro">The build cycle only starts when a repository <strong>maintainer explicitly @mentions the bot</strong> on a GitHub issue. Requests from Discord or Slack are never executed directly — the bot creates a GitHub issue first, and the build runs against that issue. This is a deliberate safety constraint: the GitHub issue is the authorisation gate, and all code changes have a traceable origin.</p>
+
+		<div class="loop-diagram">
+			<svg viewBox="0 0 800 380" xmlns="http://www.w3.org/2000/svg" class="flow-svg">
+				<!-- Background -->
+				<rect width="800" height="340" fill="none"/>
+
+				<!-- Phase boxes -->
+				<rect x="20" y="40" width="140" height="70" rx="10" fill="#141B24" stroke="#1E2A38" stroke-width="1.5"/>
+				<text x="90" y="68" text-anchor="middle" fill="#7D8694" font-size="11" font-family="Inter, sans-serif">PHASE 0</text>
+				<text x="90" y="88" text-anchor="middle" fill="#ECEFF4" font-size="13" font-weight="600" font-family="Inter, sans-serif">Context</text>
+
+				<rect x="195" y="40" width="140" height="70" rx="10" fill="#141B24" stroke="#1A7A8A" stroke-width="1.5"/>
+				<text x="265" y="68" text-anchor="middle" fill="#1A7A8A" font-size="11" font-family="Inter, sans-serif">PHASE 1</text>
+				<text x="265" y="88" text-anchor="middle" fill="#ECEFF4" font-size="13" font-weight="600" font-family="Inter, sans-serif">Architect</text>
+
+				<rect x="370" y="40" width="140" height="70" rx="10" fill="#141B24" stroke="#F0B429" stroke-width="1.5"/>
+				<text x="440" y="68" text-anchor="middle" fill="#F0B429" font-size="11" font-family="Inter, sans-serif">PHASE 2</text>
+				<text x="440" y="88" text-anchor="middle" fill="#ECEFF4" font-size="13" font-weight="600" font-family="Inter, sans-serif">Executor</text>
+
+				<rect x="545" y="40" width="140" height="70" rx="10" fill="#141B24" stroke="#E8752A" stroke-width="1.5"/>
+				<text x="615" y="68" text-anchor="middle" fill="#E8752A" font-size="11" font-family="Inter, sans-serif">PHASE 3</text>
+				<text x="615" y="88" text-anchor="middle" fill="#ECEFF4" font-size="13" font-weight="600" font-family="Inter, sans-serif">Reviewer</text>
+
+				<!-- Arrows forward -->
+				<line x1="160" y1="75" x2="195" y2="75" stroke="#2A3A4D" stroke-width="1.5" marker-end="url(#arrow)"/>
+				<line x1="335" y1="75" x2="370" y2="75" stroke="#2A3A4D" stroke-width="1.5" marker-end="url(#arrow)"/>
+				<line x1="510" y1="75" x2="545" y2="75" stroke="#2A3A4D" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+				<!-- Decision diamond -->
+				<polygon points="615,140 650,170 615,200 580,170" fill="#141B24" stroke="#E8752A" stroke-width="1.5"/>
+				<text x="615" y="174" text-anchor="middle" fill="#ECEFF4" font-size="11" font-weight="500" font-family="Inter, sans-serif">OK?</text>
+
+				<!-- Arrow down from Reviewer to diamond -->
+				<line x1="615" y1="110" x2="615" y2="140" stroke="#2A3A4D" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+				<!-- Yes path — to PR -->
+				<rect x="545" y="240" width="140" height="60" rx="10" fill="#141B24" stroke="#1A7A8A" stroke-width="1.5"/>
+				<text x="615" y="266" text-anchor="middle" fill="#1A7A8A" font-size="11" font-family="Inter, sans-serif">PHASE 5</text>
+				<text x="615" y="284" text-anchor="middle" fill="#ECEFF4" font-size="13" font-weight="600" font-family="Inter, sans-serif">Create PR</text>
+				<line x1="615" y1="200" x2="615" y2="240" stroke="#1A7A8A" stroke-width="1.5" marker-end="url(#arrow)"/>
+				<text x="628" y="224" fill="#1A7A8A" font-size="10" font-family="Inter, sans-serif">yes</text>
+
+				<!-- No path — fix loop back to Executor -->
+				<line x1="580" y1="170" x2="440" y2="170" stroke="#E8752A" stroke-width="1.5" stroke-dasharray="6,3"/>
+				<line x1="440" y1="170" x2="440" y2="110" stroke="#E8752A" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrow-orange)"/>
+				<text x="505" y="162" fill="#E8752A" font-size="10" font-family="Inter, sans-serif">no (max 2x)</text>
+
+				<!-- GitHub issue bar at bottom -->
+				<rect x="20" y="340" width="665" height="30" rx="6" fill="#0C1117" stroke="#1E2A38" stroke-width="1"/>
+				<text x="352" y="360" text-anchor="middle" fill="#7D8694" font-size="11" font-family="Inter, sans-serif">GitHub Issue — progress posted at every phase</text>
+
+				<!-- Dashed lines from phases to issue bar -->
+				<line x1="90" y1="110" x2="90" y2="340" stroke="#1E2A38" stroke-width="1" stroke-dasharray="3,4"/>
+				<line x1="265" y1="110" x2="265" y2="340" stroke="#1E2A38" stroke-width="1" stroke-dasharray="3,4"/>
+				<line x1="440" y1="170" x2="440" y2="340" stroke="#1E2A38" stroke-width="1" stroke-dasharray="3,4"/>
+				<line x1="615" y1="300" x2="615" y2="340" stroke="#1E2A38" stroke-width="1" stroke-dasharray="3,4"/>
+
+				<!-- Arrow markers -->
+				<defs>
+					<marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+						<path d="M0,0 L8,3 L0,6" fill="#2A3A4D"/>
+					</marker>
+					<marker id="arrow-orange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+						<path d="M0,0 L8,3 L0,6" fill="#E8752A"/>
+					</marker>
+				</defs>
+			</svg>
+		</div>
+
+		<div class="loop-steps">
+			<div class="loop-step">
+				<div class="step-marker">0</div>
+				<div>
+					<h4>Pre-context intake</h4>
+					<p>Ensure a GitHub issue exists (create one if the request came from Discord, Slack, or CLI). Read the issue, comments, and repo structure. Assemble a context snapshot: what needs doing, what success looks like, what constraints exist, and what's unknown. This grounds all subsequent work.</p>
+				</div>
+			</div>
+			<div class="loop-step">
+				<div class="step-marker step-marker-teal">1</div>
+				<div>
+					<h4>Architect analysis</h4>
+					<p>A read-only agent analyses the codebase, identifies the files to change, plans the approach, flags risks, and estimates complexity. Every recommendation cites <code>file:line</code> evidence. The summary is posted to the GitHub issue.</p>
+				</div>
+			</div>
+			<div class="loop-step">
+				<div class="step-marker step-marker-gold">2</div>
+				<div>
+					<h4>Executor implementation</h4>
+					<p>A fresh agent receives the Architect's plan and implements it. It follows test-driven development: write a failing test, implement, verify, commit. Commits use the Lore format with semantic trailers (<code>Tested:</code>, <code>Scope-risk:</code>). Progress is posted to the issue.</p>
+				</div>
+			</div>
+			<div class="loop-step">
+				<div class="step-marker step-marker-orange">3</div>
+				<div>
+					<h4>Reviewer verification</h4>
+					<p>An independent agent — with no shared context from the Executor — verifies the implementation. It runs the tests, checks the code against the plan, and looks for security and logic issues. It returns <code>APPROVED</code> or <code>REQUEST_CHANGES</code>.</p>
+				</div>
+			</div>
+			<div class="loop-step">
+				<div class="step-marker step-marker-orange">4</div>
+				<div>
+					<h4>Fix loop</h4>
+					<p>If the Reviewer rejects, a new Executor fixes only the reported issues (fresh context, not the original builder). The Reviewer checks again. Maximum two cycles — after that, remaining issues are noted in the PR description for human review.</p>
+				</div>
+			</div>
+			<div class="loop-step">
+				<div class="step-marker step-marker-teal">5</div>
+				<div>
+					<h4>Create PR</h4>
+					<p>The PR is opened, linked to the original issue, and the issue gets a comment with the PR link. The full audit trail — from context snapshot to review verdict — lives on the GitHub issue.</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Events & Skills -->
+	<section class="content-section">
+		<h2>Events and skills</h2>
+		<p class="section-intro">Last Light responds to GitHub events and scheduled jobs. Each triggers a specific skill — a plain-text instruction file the agent follows.</p>
+
+		<div class="events-grid">
+			<div class="event-card">
+				<div class="event-header">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+					<h3>Issue opened</h3>
+					<span class="event-trigger">webhook</span>
+				</div>
+				<p>Classifies the issue (bug, feature, question), adds labels, checks for duplicates, and asks for missing information if needed.</p>
+				<p class="event-skill">Skill: <a href="https://github.com/cliftonc/lastlight/blob/main/skills/issue-triage/SKILL.md" target="_blank" rel="noopener"><code>issue-triage</code></a></p>
+			</div>
+
+			<div class="event-card">
+				<div class="event-header">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+					<h3>PR opened</h3>
+					<span class="event-trigger">webhook</span>
+				</div>
+				<p>Reviews the diff with structured feedback: critical issues first, then important, suggestions, and nits. Complex PRs (>300 lines) get deep analysis with local clone and data flow tracing.</p>
+				<p class="event-skill">Skill: <a href="https://github.com/cliftonc/lastlight/blob/main/skills/pr-review/SKILL.md" target="_blank" rel="noopener"><code>pr-review</code></a></p>
+			</div>
+
+			<div class="event-card">
+				<div class="event-header">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+					<h3>@mention from maintainer</h3>
+					<span class="event-trigger">webhook</span>
+				</div>
+				<p>Only triggers when a <strong>maintainer</strong> @mentions the bot — non-maintainers get a polite decline. Runs the full Architect→Executor→Reviewer build cycle: clones the repo, implements the change, runs tests, and opens a PR — all tracked on the GitHub issue.</p>
+				<p class="event-skill">Skill: <a href="https://github.com/cliftonc/lastlight/blob/main/skills/webhook-github/SKILL.md" target="_blank" rel="noopener"><code>webhook-github</code></a></p>
+			</div>
+
+			<div class="event-card">
+				<div class="event-header">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+					<h3>Scheduled triage</h3>
+					<span class="event-trigger event-trigger-cron">cron / 15 min</span>
+				</div>
+				<p>Polls for new unlabelled issues every 15 minutes. Same logic as the webhook handler, but for setups without a public webhook endpoint.</p>
+				<p class="event-skill">Skill: <a href="https://github.com/cliftonc/lastlight/blob/main/skills/issue-triage/SKILL.md" target="_blank" rel="noopener"><code>issue-triage</code></a></p>
+			</div>
+
+			<div class="event-card">
+				<div class="event-header">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+					<h3>Weekly health report</h3>
+					<span class="event-trigger event-trigger-cron">cron / Mon 9am</span>
+				</div>
+				<p>Summarises open issues by priority, stale items, PRs awaiting review, and recently closed work. Flags anything that needs attention.</p>
+				<p class="event-skill">Skill: <a href="https://github.com/cliftonc/lastlight/blob/main/skills/repo-health/SKILL.md" target="_blank" rel="noopener"><code>repo-health</code></a></p>
+			</div>
+
+			<div class="event-card">
+				<div class="event-header">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+					<h3>Token refresh</h3>
+					<span class="event-trigger event-trigger-cron">cron / 50 min</span>
+				</div>
+				<p>Refreshes the GitHub App installation token before it expires (~1 hour). Ensures uninterrupted API access without manual intervention.</p>
+				<p class="event-skill">Skill: <code>reload-mcp</code></p>
+			</div>
+		</div>
+	</section>
+
+	<!-- Lore Commits -->
+	<section class="content-section">
+		<h2>Lore commits</h2>
+		<p class="section-intro">When Last Light commits code, it uses a format adapted from the <a href="https://github.com/Yeachan-Heo/oh-my-codex" target="_blank" rel="noopener">OmX</a> "Lore commit" convention. The goal: give future humans and agents enough context to understand the decision without reading the diff.</p>
+
+		<div class="code-block">
+			<pre><code>[verified] feat: add rate limiting to webhook endpoint (#42)
+
+Tested: npm test -> 23 passed, 0 failed
+Scope-risk: medium
+Constraint: must stay under 100ms p99 to avoid GitHub webhook timeout</code></pre>
+		</div>
+
+		<div class="commit-explainer">
+			<div class="commit-part">
+				<code>[verified]</code>
+				<p>An independent Reviewer agent approved this change.</p>
+			</div>
+			<div class="commit-part">
+				<code>Tested:</code>
+				<p>What test command was run and the result. Not "tests pass" — the actual output.</p>
+			</div>
+			<div class="commit-part">
+				<code>Scope-risk:</code>
+				<p>How much of the codebase this touches. Helps humans decide how urgently to review.</p>
+			</div>
+			<div class="commit-part">
+				<code>Constraint:</code>
+				<p>Optional. External forces that shaped the decision — things a future agent might not know.</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- Known Limitations -->
+	<section class="content-section">
+		<h2>Known limitations</h2>
+		<p class="section-intro">This is an evolving system. Here's what we know doesn't work yet and what we're exploring.</p>
+
+		<div class="limitations-list">
+			<div class="limitation-card">
+				<h4>Sequential execution only</h4>
+				<p>The Hermes framework's <code>delegate_task</code> API is strictly sequential — the orchestrator waits for each subagent to complete before dispatching the next. OmX achieves parallelism through tmux-based workers and shared state files, which don't map to Hermes's Modal sandbox model. For now, the Architect→Executor→Reviewer cycle runs one phase at a time.</p>
+				<p class="limitation-future">Future: We're exploring a custom MCP tool for parallel agent dispatch, and Discord-based multi-agent coordination (the same approach OmX uses).</p>
+			</div>
+			<div class="limitation-card">
+				<h4>No persistent execution loops</h4>
+				<p>OmX's <code>$ralph</code> mode keeps an agent working across iterations until the task is architect-verified complete, with automatic retry on failure. Last Light approximates this with an architect completion gate (max 2 retry cycles), but doesn't yet have true persistent loops that survive session resets.</p>
+			</div>
+			<div class="limitation-card">
+				<h4>Iteration budget pressure</h4>
+				<p>Webhook sessions have a timeout (~30 minutes) and tool-call limit. The role-based cycle costs 3-5 subagent calls minimum. For simple, well-scoped changes this works well. For complex multi-file refactors, the budget can get tight. Simple requests can skip the Architect phase to save iterations.</p>
+			</div>
+			<div class="limitation-card">
+				<h4>No cross-agent memory</h4>
+				<p>Each subagent starts with a fresh context. The Reviewer cannot see the Executor's reasoning — by design. But this also means the Reviewer can't learn from patterns across multiple reviews. Agent memory is per-session, not cumulative.</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- How OmX Compares -->
+	<section class="content-section">
+		<h2>How this compares to OmX</h2>
+		<p class="section-intro">Last Light adapts OmX's core ideas to a different runtime. Here's what maps directly and what we had to rethink.</p>
+
+		<div class="comparison-table">
+			<div class="comparison-header">
+				<span></span>
+				<span>OmX / claw-code</span>
+				<span>Last Light</span>
+			</div>
+			<div class="comparison-row">
+				<span class="comparison-label">Runtime</span>
+				<span>OpenAI Codex CLI + tmux</span>
+				<span>Hermes Agent + Modal sandbox</span>
+			</div>
+			<div class="comparison-row">
+				<span class="comparison-label">Role system</span>
+				<span>33 prompt templates ($architect, $executor, etc.)</span>
+				<span>3 core roles (Architect, Executor, Reviewer) as skill + delegate_task prompts</span>
+			</div>
+			<div class="comparison-row">
+				<span class="comparison-label">Parallelism</span>
+				<span>tmux panes with shared state files + mailbox dispatch</span>
+				<span>Sequential (delegate_task blocks until complete)</span>
+			</div>
+			<div class="comparison-row">
+				<span class="comparison-label">Coordination</span>
+				<span>Discord channels via clawhip daemon</span>
+				<span>GitHub issues as authorisation gate; input from Discord, Slack, CLI</span>
+			</div>
+			<div class="comparison-row">
+				<span class="comparison-label">Persistence</span>
+				<span>$ralph — loops until architect-verified complete</span>
+				<span>Architect completion gate with max 2 retry cycles</span>
+			</div>
+			<div class="comparison-row">
+				<span class="comparison-label">Event routing</span>
+				<span>clawhip daemon (background process)</span>
+				<span>Hermes webhook platform (built-in)</span>
+			</div>
+			<div class="comparison-row">
+				<span class="comparison-label">Commits</span>
+				<span>Lore format (full trailer set)</span>
+				<span>Lore format (reduced: Tested, Scope-risk, Constraint)</span>
+			</div>
+		</div>
+	</section>
+
+	<!-- Skills as plain text -->
+	<section class="content-section">
+		<h2>Skills are plain text</h2>
+		<p class="section-intro">Every behaviour described on this page is defined in a Markdown file. No framework APIs, no plugin system — just instructions the agent follows. Change the instructions, change the behaviour.</p>
+
+		<div class="code-block">
+			<div class="code-header"><a href="https://github.com/cliftonc/lastlight/blob/main/skills/software-development/architect/SKILL.md" target="_blank" rel="noopener" style="color: var(--text-muted);">skills/software-development/architect/SKILL.md</a></div>
+			<pre><code>---
+name: architect
+description: >
+  Read-only deep analysis role. Diagnose problems, analyze
+  codebases, and recommend approaches with file:line evidence.
+---
+
+## Identity
+You are the Architect. You diagnose, analyze, and recommend
+with file-backed evidence. You are strictly read-only.
+
+## Constraints
+- Never write or edit files
+- Never judge code you have not opened
+- Always cite file:line for every important claim
+...</code></pre>
+		</div>
+
+		<p class="section-note">All skill files live in the <a href="https://github.com/cliftonc/lastlight/tree/main/skills" target="_blank" rel="noopener"><code>skills/</code></a> directory of the repository. Key skills: <a href="https://github.com/cliftonc/lastlight/blob/main/skills/software-development/architect/SKILL.md" target="_blank" rel="noopener">architect</a>, <a href="https://github.com/cliftonc/lastlight/blob/main/skills/webhook-github/SKILL.md" target="_blank" rel="noopener">webhook-github</a>, <a href="https://github.com/cliftonc/lastlight/blob/main/skills/software-development/subagent-driven-development/SKILL.md" target="_blank" rel="noopener">subagent-driven-development</a>, <a href="https://github.com/cliftonc/lastlight/blob/main/skills/software-development/requesting-code-review/SKILL.md" target="_blank" rel="noopener">requesting-code-review</a>, <a href="https://github.com/cliftonc/lastlight/blob/main/skills/software-development/test-driven-development/SKILL.md" target="_blank" rel="noopener">test-driven-development</a>. The agent personality is defined in <a href="https://github.com/cliftonc/lastlight/blob/main/SOUL.md" target="_blank" rel="noopener"><code>SOUL.md</code></a>.</p>
+	</section>
+
+	<!-- Living Document -->
+	<section class="content-section last-section">
+		<div class="callout-card callout-evolving">
+			<h3>This page will evolve</h3>
+			<p>Last Light is in active development. As we test these patterns in the real world — on the <a href="https://github.com/cliftonc/drizzle-cube" target="_blank" rel="noopener">drizzle-cube</a> and <a href="https://github.com/cliftonc/drizby" target="_blank" rel="noopener">drizby</a> repositories — we'll update this page with what works, what doesn't, and what we've changed. Check the <a href="https://github.com/users/cliftonc/projects/4" target="_blank" rel="noopener">roadmap</a> for what's next.</p>
+		</div>
+	</section>
+
+	<Footer />
+
+</body>
+</html>
+
+<style is:global>
+	:root {
+		--gold: #F0B429;
+		--orange: #E8752A;
+		--teal: #1A7A8A;
+		--teal-dark: #135E6B;
+		--navy: #1B2735;
+		--bg: #0C1117;
+		--bg-card: #141B24;
+		--bg-card-hover: #1A2332;
+		--border: #1E2A38;
+		--text: #C9D1D9;
+		--text-muted: #7D8694;
+		--text-bright: #ECEFF4;
+		--mono: 'JetBrains Mono', monospace;
+		--sans: 'Inter', -apple-system, sans-serif;
+	}
+
+	* { margin: 0; padding: 0; box-sizing: border-box; }
+	html { scroll-behavior: smooth; }
+
+	body {
+		background: var(--bg);
+		color: var(--text);
+		font-family: var(--sans);
+		line-height: 1.6;
+		-webkit-font-smoothing: antialiased;
+	}
+
+	a { color: var(--gold); text-decoration: none; transition: color 0.2s; }
+	a:hover { color: var(--orange); }
+	h1, h2, h3, h4 { color: var(--text-bright); font-weight: 600; }
+
+	code {
+		font-family: var(--mono);
+		font-size: 0.85em;
+		background: var(--navy);
+		padding: 0.15em 0.4em;
+		border-radius: 4px;
+		color: var(--gold);
+	}
+
+	/* Nav */
+	nav {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1.25rem 2rem;
+		max-width: 1100px;
+		margin: 0 auto;
+	}
+
+	.nav-logo {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		font-weight: 600;
+		color: var(--text-bright);
+		font-size: 1rem;
+	}
+
+	.nav-logo:hover { color: var(--gold); }
+
+	.nav-links {
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+	}
+
+	.nav-links a {
+		color: var(--text-muted);
+		font-size: 0.88rem;
+		font-weight: 500;
+		transition: color 0.2s;
+	}
+
+	.nav-links a:hover { color: var(--text-bright); }
+
+	.gh-link {
+		color: var(--text-muted);
+		display: flex;
+		align-items: center;
+		padding: 0.4rem;
+		border-radius: 6px;
+		transition: color 0.2s, background 0.2s;
+	}
+
+	.gh-link:hover {
+		color: var(--text-bright);
+		background: var(--bg-card);
+	}
+
+	/* Page header */
+	.page-header {
+		max-width: 1000px;
+		margin: 0 auto;
+		padding: 4rem 2rem 1rem;
+	}
+
+	.page-header h1 {
+		font-size: clamp(1.8rem, 4vw, 2.5rem);
+		margin-bottom: 1rem;
+		letter-spacing: -0.02em;
+	}
+
+	.page-header .subtitle {
+		font-size: 1.1rem;
+		color: var(--text-muted);
+		line-height: 1.65;
+	}
+
+	.accent { color: var(--gold); }
+
+	/* Content sections */
+	.content-section {
+		max-width: 1000px;
+		margin: 0 auto;
+		padding: 3rem 2rem;
+	}
+
+	.content-section h2 {
+		font-size: 1.6rem;
+		margin-bottom: 0.75rem;
+		letter-spacing: -0.01em;
+		width: 100%;
+	}
+
+	.section-intro {
+		font-size: 0.95rem;
+		color: var(--text-muted);
+		line-height: 1.7;
+		margin-bottom: 2rem;
+	}
+
+	.section-note {
+		font-size: 0.88rem;
+		color: var(--text-muted);
+		margin-top: 1.5rem;
+		line-height: 1.65;
+	}
+
+	/* Callout card */
+	.callout-card {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-left: 3px solid var(--teal);
+		border-radius: 10px;
+		padding: 1.5rem 1.75rem;
+	}
+
+	.callout-card p {
+		font-size: 0.92rem;
+		color: var(--text);
+		line-height: 1.7;
+		margin-bottom: 0.75rem;
+	}
+
+	.callout-card p:last-child { margin-bottom: 0; }
+
+	.callout-card blockquote {
+		border-left: 2px solid var(--gold);
+		padding-left: 1rem;
+		margin: 1rem 0;
+		font-style: italic;
+		color: var(--text-bright);
+		font-size: 0.95rem;
+	}
+
+	.callout-evolving {
+		border-left-color: var(--gold);
+	}
+
+	.callout-evolving h3 {
+		font-size: 1.1rem;
+		margin-bottom: 0.75rem;
+	}
+
+	/* Principles grid */
+	.principles-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1rem;
+		margin-top: 1.5rem;
+	}
+
+	.principle-card {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: 1.5rem;
+		transition: border-color 0.25s;
+	}
+
+	.principle-card:hover { border-color: #2A3A4D; }
+
+	.principle-header {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		margin-bottom: 0.6rem;
+	}
+
+	.principle-num {
+		width: 28px;
+		height: 28px;
+		border-radius: 50%;
+		background: var(--teal-dark);
+		color: var(--text-bright);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.8rem;
+		font-weight: 600;
+		font-family: var(--mono);
+		flex-shrink: 0;
+	}
+
+	.principle-card h3 {
+		font-size: 1rem;
+		margin-bottom: 0;
+	}
+
+	.principle-card p {
+		font-size: 0.88rem;
+		color: var(--text-muted);
+		line-height: 1.65;
+	}
+
+	/* Roles grid */
+	.roles-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1rem;
+		margin-top: 1.5rem;
+	}
+
+	.role-card {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.role-architect { border-top: 2px solid var(--teal); }
+	.role-executor { border-top: 2px solid var(--gold); }
+	.role-reviewer { border-top: 2px solid var(--orange); }
+
+	.role-header {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+	}
+
+	.role-header svg { color: var(--text-muted); flex-shrink: 0; }
+	.role-header h3 { font-size: 1.05rem; }
+
+	.role-badge {
+		font-family: var(--mono);
+		font-size: 0.7rem;
+		background: var(--teal-dark);
+		color: var(--teal);
+		padding: 0.2em 0.6em;
+		border-radius: 4px;
+		margin-left: auto;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	.role-badge-exec {
+		background: rgba(240, 180, 41, 0.15);
+		color: var(--gold);
+	}
+
+	.role-desc {
+		font-size: 0.88rem;
+		color: var(--text-muted);
+		line-height: 1.6;
+	}
+
+	.role-rules { font-size: 0.84rem; }
+
+	.rule-label {
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--teal);
+		font-weight: 600;
+		margin-bottom: 0.3rem;
+	}
+
+	.rule-label-cant { color: var(--orange); margin-top: 0.75rem; }
+
+	.role-rules ul {
+		list-style: none;
+		padding: 0;
+	}
+
+	.role-rules li {
+		color: var(--text-muted);
+		line-height: 1.55;
+		padding-left: 1rem;
+		position: relative;
+		margin-bottom: 0.2rem;
+	}
+
+	.role-rules li::before {
+		content: '\2022';
+		position: absolute;
+		left: 0;
+		color: var(--border);
+	}
+
+	.role-output {
+		border-top: 1px solid var(--border);
+		padding-top: 0.75rem;
+		margin-top: auto;
+	}
+
+	.role-output p { font-size: 0.84rem; color: var(--text-muted); line-height: 1.55; }
+
+	/* Flow diagram */
+	.loop-diagram {
+		margin: 2rem 0;
+		overflow-x: auto;
+	}
+
+	.flow-svg {
+		width: 100%;
+		max-width: 800px;
+		height: auto;
+		display: block;
+		margin: 0 auto;
+	}
+
+	/* Loop steps */
+	.loop-steps {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.loop-step {
+		display: flex;
+		gap: 1.25rem;
+		align-items: flex-start;
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: 1.25rem 1.5rem;
+	}
+
+	.step-marker {
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background: var(--navy);
+		border: 1.5px solid var(--border);
+		color: var(--text-muted);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.82rem;
+		font-weight: 600;
+		font-family: var(--mono);
+		flex-shrink: 0;
+		margin-top: 0.1rem;
+	}
+
+	.step-marker-teal { border-color: var(--teal); color: var(--teal); }
+	.step-marker-gold { border-color: var(--gold); color: var(--gold); }
+	.step-marker-orange { border-color: var(--orange); color: var(--orange); }
+
+	.loop-step h4 {
+		font-size: 0.95rem;
+		margin-bottom: 0.35rem;
+	}
+
+	.loop-step p {
+		font-size: 0.88rem;
+		color: var(--text-muted);
+		line-height: 1.65;
+	}
+
+	/* Events grid */
+	.events-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1rem;
+	}
+
+	.event-card {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: 1.25rem 1.5rem;
+		transition: border-color 0.25s;
+	}
+
+	.event-card:hover { border-color: #2A3A4D; }
+
+	.event-header {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.event-header svg { color: var(--text-muted); flex-shrink: 0; }
+	.event-header h3 { font-size: 0.95rem; }
+
+	.event-trigger {
+		font-family: var(--mono);
+		font-size: 0.68rem;
+		background: rgba(26, 122, 138, 0.15);
+		color: var(--teal);
+		padding: 0.2em 0.6em;
+		border-radius: 4px;
+		margin-left: auto;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	.event-trigger-cron {
+		background: rgba(240, 180, 41, 0.12);
+		color: var(--gold);
+	}
+
+	.event-card p {
+		font-size: 0.86rem;
+		color: var(--text-muted);
+		line-height: 1.6;
+		margin-bottom: 0.5rem;
+	}
+
+	.event-skill {
+		font-size: 0.8rem;
+		color: var(--text-muted);
+		margin-top: 0.5rem;
+		margin-bottom: 0;
+	}
+
+	/* Code blocks */
+	.code-block {
+		background: var(--navy);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		overflow: hidden;
+		margin: 1.5rem 0;
+	}
+
+	.code-header {
+		font-family: var(--mono);
+		font-size: 0.78rem;
+		color: var(--text-muted);
+		padding: 0.6rem 1.25rem;
+		border-bottom: 1px solid var(--border);
+		background: rgba(0,0,0,0.2);
+	}
+
+	.code-block pre {
+		padding: 1.25rem;
+		overflow-x: auto;
+	}
+
+	.code-block code {
+		font-size: 0.82rem;
+		background: none;
+		padding: 0;
+		color: var(--text);
+		line-height: 1.7;
+	}
+
+	/* Commit explainer */
+	.commit-explainer {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.75rem;
+		margin-top: 1rem;
+	}
+
+	.commit-part {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		padding: 1rem 1.25rem;
+	}
+
+	.commit-part code {
+		display: inline-block;
+		margin-bottom: 0.4rem;
+		font-size: 0.85rem;
+	}
+
+	.commit-part p {
+		font-size: 0.84rem;
+		color: var(--text-muted);
+		line-height: 1.55;
+		margin: 0;
+	}
+
+	/* Limitations */
+	.limitations-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.limitation-card {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-left: 3px solid var(--orange);
+		border-radius: 10px;
+		padding: 1.25rem 1.5rem;
+	}
+
+	.limitation-card h4 {
+		font-size: 0.95rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.limitation-card p {
+		font-size: 0.88rem;
+		color: var(--text-muted);
+		line-height: 1.65;
+		margin-bottom: 0.5rem;
+	}
+
+	.limitation-card p:last-child { margin-bottom: 0; }
+
+	.limitation-future {
+		color: var(--teal) !important;
+		font-size: 0.84rem !important;
+		font-style: italic;
+	}
+
+	/* Comparison table */
+	.comparison-table {
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		overflow: hidden;
+		margin-top: 1.5rem;
+	}
+
+	.comparison-header, .comparison-row {
+		display: grid;
+		grid-template-columns: 160px 1fr 1fr;
+		font-size: 0.86rem;
+	}
+
+	.comparison-header {
+		background: var(--navy);
+		border-bottom: 1px solid var(--border);
+	}
+
+	.comparison-header span {
+		padding: 0.85rem 1.25rem;
+		font-weight: 600;
+		color: var(--text-bright);
+		font-size: 0.82rem;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	.comparison-row {
+		border-bottom: 1px solid var(--border);
+	}
+
+	.comparison-row:last-child { border-bottom: none; }
+
+	.comparison-row span {
+		padding: 0.75rem 1.25rem;
+		color: var(--text-muted);
+		line-height: 1.5;
+	}
+
+	.comparison-label {
+		color: var(--text-bright) !important;
+		font-weight: 500;
+		background: var(--bg-card);
+		border-right: 1px solid var(--border);
+	}
+
+	.comparison-row:nth-child(odd) span:not(.comparison-label) {
+		background: rgba(20, 27, 36, 0.5);
+	}
+
+	/* Footer */
+	footer {
+		border-top: 1px solid var(--border);
+		padding: 2rem;
+		margin-top: 2rem;
+	}
+
+	.footer-content {
+		max-width: 1000px;
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.footer-links {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.82rem;
+	}
+
+	.footer-links a {
+		color: var(--text-muted);
+		transition: color 0.2s;
+	}
+
+	.footer-links a:hover { color: var(--gold); }
+
+	.footer-sep {
+		color: var(--border);
+		font-size: 0.75rem;
+	}
+
+	.footer-meta {
+		font-size: 0.78rem;
+		color: var(--text-muted);
+		margin-left: auto;
+	}
+
+	.last-section { padding-bottom: 1rem; }
+
+	/* Responsive */
+	@media (max-width: 640px) {
+		.nav-links { gap: 0.75rem; }
+		.nav-links a { font-size: 0.8rem; }
+		.principles-grid { grid-template-columns: 1fr; }
+		.roles-grid { grid-template-columns: 1fr; }
+		.events-grid { grid-template-columns: 1fr; }
+		.commit-explainer { grid-template-columns: 1fr; }
+		.comparison-header, .comparison-row { grid-template-columns: 100px 1fr 1fr; font-size: 0.78rem; }
+		.comparison-header span, .comparison-row span { padding: 0.6rem 0.75rem; }
+		.footer-content { flex-direction: column; align-items: flex-start; }
+		.footer-meta { margin-left: 0; }
+	}
+</style>

@@ -1,5 +1,7 @@
 ---
 // Last Light — GitHub maintenance agent
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
 ---
 
 <html lang="en">
@@ -15,21 +17,7 @@
 </head>
 <body>
 
-	<!-- Nav -->
-	<nav>
-		<a href="/" class="nav-logo">
-			<img src="/logo.png" alt="" width="24" height="24" style="object-fit: contain;" /> Last Light
-		</a>
-		<div class="nav-links">
-			<a href="/#features">Features</a>
-			<a href="/#get-started">Get Started</a>
-			<a href="/run-it">Run It for Real</a>
-			<a href="/faq">FAQ</a>
-			<a href="https://github.com/cliftonc/lastlight" class="gh-link" target="_blank" rel="noopener">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-			</a>
-		</div>
-	</nav>
+	<Nav />
 
 	<!-- Hero -->
 	<header class="hero">
@@ -76,10 +64,10 @@
 			</div>
 			<div class="feature-card">
 				<div class="feature-icon">
-					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
 				</div>
-				<h3>Two modes</h3>
-				<p>Webhooks for real-time response, or cron for periodic sweeps. Use one or the other — not both.</p>
+				<h3>Build on Request</h3>
+				<p>@mention the bot on an issue and it builds the feature — Architect plans, Executor codes, Reviewer verifies, PR opens. <a href="/how-it-works">See how it works.</a></p>
 			</div>
 		</div>
 	</section>
@@ -122,7 +110,7 @@
 				</div>
 			</div>
 		</div>
-		<p class="section-note">Already have an <code>AGENTS.md</code> or <code>CLAUDE.md</code> in your repo? Last Light reads those automatically — your coding conventions, testing requirements, and architectural guardrails carry over. No need to duplicate them.</p>
+		<p class="section-note">Build requests use a role-based <strong>Architect→Executor→Reviewer</strong> cycle — <a href="/how-it-works">read how it works</a> for the full picture. Already have an <code>AGENTS.md</code> or <code>CLAUDE.md</code> in your repo? Last Light reads those automatically — your coding conventions, testing requirements, and architectural guardrails carry over.</p>
 	</section>
 
 	<!-- Get started -->
@@ -266,7 +254,7 @@ GITHUB_APP_INSTALLATION_ID=789012</code></pre>
 
 		<div class="step-block">
 			<h3><span class="step-label">Step 7</span> Connect a gateway <span class="step-label">optional</span></h3>
-			<p>Talk to Last Light from Discord, Slack, Telegram, and more. See the <a href="https://hermes-agent.nousresearch.com/docs/user-guide/messaging" target="_blank" rel="noopener">Hermes gateway docs</a> for the full list. Run the setup wizard:</p>
+			<p>Talk to Last Light from Discord, Slack, Telegram, and more. Build requests from chat always go through GitHub first — the bot creates an issue and runs the build against it, so every code change has a traceable origin. See the <a href="https://hermes-agent.nousresearch.com/docs/user-guide/messaging" target="_blank" rel="noopener">Hermes gateway docs</a> for the full list. Run the setup wizard:</p>
 			<pre><code>./lastlight gateway setup</code></pre>
 			<p>Then run it as a persistent service:</p>
 			<pre><code>./lastlight gateway            # run in foreground
@@ -373,6 +361,10 @@ TELEGRAM_HOME_CHANNEL=chat-id</code></pre>
 				<code>/repo-health</code>
 				<p>Generate a health report with metrics and action items</p>
 			</div>
+			<div class="skill">
+				<code>/architect</code>
+				<p>Read-only deep analysis with file:line evidence</p>
+			</div>
 			<a href="https://github.com/users/cliftonc/projects/4" class="skill skill-cta" target="_blank" rel="noopener">
 				<strong>Want more?</strong>
 				<p>Check the roadmap for what's coming next</p>
@@ -404,7 +396,7 @@ TELEGRAM_HOME_CHANNEL=chat-id</code></pre>
 					</div>
 					<div class="schedule-row">
 						<span>@mention from maintainer</span>
-						<span class="freq">Builds a feature</span>
+						<span class="freq">Architect→Executor→Reviewer build cycle</span>
 					</div>
 				</div>
 			</div>
@@ -436,23 +428,7 @@ TELEGRAM_HOME_CHANNEL=chat-id</code></pre>
 	</section>
 
 	<!-- Footer -->
-	<footer>
-		<div class="footer-content">
-			<img src="/logo.png" alt="Last Light" width="32" height="32" />
-			<div class="footer-links">
-				<a href="/">Home</a>
-				<span class="footer-sep">/</span>
-				<a href="/run-it">Run It for Real</a>
-				<span class="footer-sep">/</span>
-				<a href="/faq">FAQ</a>
-				<span class="footer-sep">/</span>
-				<a href="https://github.com/users/cliftonc/projects/4" target="_blank" rel="noopener">Roadmap</a>
-				<span class="footer-sep">/</span>
-				<a href="https://github.com/cliftonc/lastlight" target="_blank" rel="noopener">Source</a>
-			</div>
-			<p class="footer-meta">MIT License. Built with <a href="https://hermes-agent.nousresearch.com/" target="_blank" rel="noopener">Hermes Agent</a>.</p>
-		</div>
-	</footer>
+	<Footer />
 
 </body>
 </html>
@@ -695,7 +671,6 @@ TELEGRAM_HOME_CHANNEL=chat-id</code></pre>
 
 	.section-desc {
 		color: var(--text-muted);
-		max-width: 600px;
 		margin-bottom: 1.5rem;
 		line-height: 1.65;
 	}
