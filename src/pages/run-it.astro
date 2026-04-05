@@ -69,7 +69,7 @@ cp config.yaml.example secrets/config.yaml
 cp ~/path-to/your-app.private-key.pem secrets/</code></pre>
 		<p class="step-detail">Edit <code>secrets/.env</code> with your:</p>
 		<ul class="config-list">
-			<li><strong>LLM API key</strong> — Anthropic, OpenRouter, or another provider</li>
+			<li><strong>LLM API key</strong> — Anthropic, OpenRouter, or another API-key provider. Note: <code>openai-codex</code> requires interactive OAuth login and won't work in headless Docker — use <code>openrouter</code> with <code>OPENROUTER_BASE_URL=https://api.openai.com/v1</code> for OpenAI models instead</li>
 			<li><strong>GitHub App credentials</strong> — App ID, Installation ID, and private key path</li>
 			<li><strong>Terminal backend credentials</strong> — Modal tokens or Daytona API key</li>
 			<li><strong>Webhook secret</strong> — must match your GitHub App's webhook settings</li>
@@ -139,6 +139,35 @@ curl https://lastlight.example.com/health
 
 # Or locally
 curl http://localhost/health</code></pre>
+
+		<div class="existing-proxy-note">
+			<h4>Already have a reverse proxy?</h4>
+			<p>If you already run Caddy, Nginx, or another reverse proxy on the host, the bundled Caddy container will fail with "address already in use" on ports 80/443. Instead, disable it and point your existing proxy at the agent:</p>
+			<p class="step-detail"><strong>1.</strong> Create a <code>docker-compose.override.yml</code> to disable the Caddy service and expose the agent port locally:</p>
+			<pre><code># docker-compose.override.yml
+services:
+  agent:
+    ports:
+      - "127.0.0.1:8644:8644"
+  caddy:
+    profiles:
+      - disabled</code></pre>
+			<p class="step-detail"><strong>2.</strong> Add a reverse proxy entry in your existing config. For Caddy:</p>
+			<pre><code>lastlight.example.com {
+    reverse_proxy localhost:8644
+}</code></pre>
+			<p class="step-detail">For Nginx:</p>
+			<pre><code>server {
+    listen 443 ssl;
+    server_name lastlight.example.com;
+    location / {
+        proxy_pass http://127.0.0.1:8644;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}</code></pre>
+			<p class="step-detail"><strong>3.</strong> Start only the agent: <code>docker compose up -d agent</code></p>
+		</div>
 		</div>
 
 		<div class="step-block">
@@ -207,12 +236,15 @@ spec:
 		<h2>Operational tips</h2>
 		<div class="tips-grid">
 			<div class="tip-card">
-				<h3>Updating</h3>
+				<h3>Updating Last Light</h3>
 				<p>Pull upstream changes, rebuild the image, restart:</p>
 				<pre><code>git fetch upstream
 git merge upstream/main
 docker compose build
 docker compose up -d</code></pre>
+				<p>This also updates Hermes Agent (installed from source during the build). To pick up the latest Hermes without any Last Light changes, just rebuild:</p>
+				<pre><code>docker compose build --no-cache agent
+docker compose up -d agent</code></pre>
 			</div>
 			<div class="tip-card">
 				<h3>Token refresh</h3>
@@ -513,6 +545,27 @@ docker compose up -d</code></pre>
 		height: 7px;
 		border-radius: 50%;
 		background: var(--teal);
+	}
+
+	/* Existing proxy note */
+	.existing-proxy-note {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		padding: 1.25rem 1.5rem;
+		margin-top: 1.5rem;
+	}
+
+	.existing-proxy-note h4 {
+		font-size: 0.95rem;
+		color: var(--teal);
+		margin-bottom: 0.5rem;
+	}
+
+	.existing-proxy-note p {
+		font-size: 0.88rem;
+		color: var(--text-muted);
+		line-height: 1.7;
 	}
 
 	/* Backend cards */
