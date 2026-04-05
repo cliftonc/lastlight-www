@@ -153,11 +153,11 @@ services:
     profiles:
       - disabled</code></pre>
 			<p class="step-detail"><strong>2.</strong> Add a reverse proxy entry in your existing config. For Caddy:</p>
-			<pre><code>lastlight.example.com {
+			<pre set:html={`<code>lastlight.example.com {
     reverse_proxy localhost:8644
-}</code></pre>
+}</code>`}></pre>
 			<p class="step-detail">For Nginx:</p>
-			<pre><code>server {
+			<pre set:html={`<code>server {
     listen 443 ssl;
     server_name lastlight.example.com;
     location / {
@@ -165,7 +165,7 @@ services:
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
-}</code></pre>
+}</code>`}></pre>
 			<p class="step-detail"><strong>3.</strong> Start only the agent: <code>docker compose up -d agent</code></p>
 		</div>
 		</div>
