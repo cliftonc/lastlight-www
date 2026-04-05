@@ -67,7 +67,7 @@ import Footer from '../components/Footer.astro';
 					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
 				</div>
 				<h3>Build on Request</h3>
-				<p>@mention the bot on an issue and it builds the feature — Architect plans, Executor codes, Reviewer verifies, PR opens. <a href="/how-it-works">See how it works.</a></p>
+				<p>@mention the bot on an issue and it builds the feature. Checks guardrails first (tests, linting, types), then Architect plans, Executor codes, Reviewer verifies, PR opens. <a href="/how-it-works">See how it works.</a></p>
 			</div>
 		</div>
 	</section>
@@ -298,7 +298,7 @@ TELEGRAM_HOME_CHANNEL=chat-id</code></pre>
         github:
           secret: "your-webhook-secret"
           events: ["issues", "pull_request", "issue_comment"]
-          skills: ["webhook-github"]
+          skills: ["github-orchestrator"]
           prompt: |
             GitHub event: &#123;_event_type&#125;, action: &#123;action&#125;
             Repository: &#123;repository.full_name&#125;
@@ -306,7 +306,7 @@ TELEGRAM_HOME_CHANNEL=chat-id</code></pre>
             Author: &#123;issue.user.login&#125;
             Body: &#123;issue.body&#125;
           deliver: log</code></pre>
-			<p>The <code>prompt</code> passes event data to the agent. The actual logic — what to act on, what to ignore — lives in the <code>webhook-github</code> skill at <code>skills/webhook-github/SKILL.md</code>, which is easy to customise.</p>
+			<p>The <code>prompt</code> passes event data to the agent. The actual logic — what to act on, what to ignore — lives in the <code>github-orchestrator</code> skill at <code>skills/github-orchestrator/SKILL.md</code>, which is easy to customise.</p>
 
 			<h4>2. Configure your GitHub App</h4>
 			<p>In your GitHub App settings, enable the webhook and set:</p>
