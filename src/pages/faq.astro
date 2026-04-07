@@ -34,19 +34,19 @@ import Footer from '../components/Footer.astro';
 				<div class="faq-answer">
 					<p>Three things:</p>
 					<ol>
-						<li><a href="https://hermes-agent.nousresearch.com/" target="_blank" rel="noopener">Hermes Agent</a> installed (<code>pip install hermes-agent</code> or via the installer)</li>
+						<li><a href="https://claude.ai/download" target="_blank" rel="noopener">Claude Code CLI</a> installed and logged in (<code>claude login</code>)</li>
 						<li>A <a href="https://docs.github.com/en/apps/creating-github-apps" target="_blank" rel="noopener">GitHub App</a> with Issues, PRs, and Contents permissions</li>
-						<li>An LLM API key (OpenRouter, Anthropic, OpenAI, etc.)</li>
+						<li>Node.js 20+ and Docker (for sandbox execution)</li>
 					</ol>
 					<p>See the <a href="/#get-started">Get Started</a> guide for step-by-step instructions.</p>
 				</div>
 			</details>
 
 			<details class="faq-item">
-				<summary>Which LLM providers work?</summary>
+				<summary>Which LLM does it use?</summary>
 				<div class="faq-answer">
-					<p>Any provider Hermes supports: OpenRouter (recommended — one key, many models), Anthropic, OpenAI, OpenAI Codex, Google, and more. Configure your provider and model in <code>config.yaml</code>.</p>
-					<p>You can also set a <code>fallback_model</code> so the agent keeps working if your primary provider rate-limits.</p>
+					<p>Last Light uses Claude via the <a href="https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sdk" target="_blank" rel="noopener">Claude Agent SDK</a>. The default model is <code>claude-sonnet-4-6</code>, configurable via the <code>CLAUDE_MODEL</code> environment variable.</p>
+					<p>Locally, the Agent SDK uses your Claude Code subscription — no separate API key needed. For production, set <code>ANTHROPIC_API_KEY</code> in <code>.env</code>.</p>
 				</div>
 			</details>
 
@@ -81,7 +81,7 @@ import Footer from '../components/Footer.astro';
 			<details class="faq-item">
 				<summary>Can the bot actually fix bugs and open PRs?</summary>
 				<div class="faq-answer">
-					<p>Yes. When a maintainer @mentions the bot on an issue, it clones the repo into a sandbox (Modal VM by default), reads the code, makes changes, runs tests, and opens a PR. It's not magic — it works best for well-scoped issues with clear descriptions.</p>
+					<p>Yes. When a maintainer @mentions the bot on an issue, it clones the repo into an isolated Docker sandbox, reads the code, makes changes, runs tests, and opens a PR. It's not magic — it works best for well-scoped issues with clear descriptions.</p>
 					<p>The bot always links back to the original issue and posts validation results so you can review before merging.</p>
 				</div>
 			</details>
@@ -113,7 +113,7 @@ import Footer from '../components/Footer.astro';
 			<details class="faq-item">
 				<summary>Can I add my own skills?</summary>
 				<div class="faq-answer">
-					<p>Yes. Create a new directory under <code>skills/</code> with a <code>SKILL.md</code> file. Follow the <a href="https://hermes-agent.nousresearch.com/docs/user-guide/skills" target="_blank" rel="noopener">Hermes skills format</a> — name, description, tags in the frontmatter, instructions in the body. The agent discovers new skills automatically.</p>
+					<p>Yes. Create a new directory under <code>skills/</code> with a <code>SKILL.md</code> file — name, description, and tags in the frontmatter, instructions in the body. Skills are plain Markdown that the agent follows as instructions. The agent discovers new skills automatically.</p>
 				</div>
 			</details>
 
@@ -131,16 +131,16 @@ import Footer from '../components/Footer.astro';
 			<details class="faq-item">
 				<summary>How much does it cost to run?</summary>
 				<div class="faq-answer">
-					<p>The main cost is LLM API usage. Each issue triage or PR review is roughly one LLM call. For a repo with a few events per day, expect cents per day. Build requests (cloning, editing, testing) use more tokens but are less frequent.</p>
-					<p>Modal sandbox compute is billed per-second at ~$0.10/hr for the default VM size. A typical build request uses 5-15 minutes of compute.</p>
+					<p>The main cost is Claude API usage. Each issue triage or PR review is roughly one agent session. For a repo with a few events per day, expect modest API costs. Build requests (cloning, editing, testing) use more tokens but are less frequent.</p>
+					<p>Locally, you can use your Claude Code subscription at no extra cost. For production, set an <code>ANTHROPIC_API_KEY</code> and costs depend on usage.</p>
 					<p>The agent itself is free and open-source.</p>
 				</div>
 			</details>
 
 			<details class="faq-item">
-				<summary>What if the LLM provider goes down?</summary>
+				<summary>What if the Claude API goes down?</summary>
 				<div class="faq-answer">
-					<p>Configure a <code>fallback_model</code> in <code>config.yaml</code>. When your primary provider returns 429 (rate limit), 503 (service error), or 529 (overload), Hermes automatically switches to the fallback. Webhook events are retried by GitHub if your endpoint doesn't respond.</p>
+					<p>If the Claude API is unavailable, agent sessions will fail and the error is logged. GitHub webhook events are retried by GitHub automatically if your endpoint doesn't respond, so the work will be picked up when service returns. The execution database tracks all attempts for visibility.</p>
 				</div>
 			</details>
 

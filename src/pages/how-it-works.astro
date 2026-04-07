@@ -22,7 +22,7 @@ import Footer from '../components/Footer.astro';
 	<!-- Header -->
 	<section class="page-header">
 		<h1>How it <span class="accent">works</span></h1>
-		<p class="subtitle">Last Light uses role-based agent coordination to maintain your GitHub repos. Triggered from GitHub, Discord, or Slack — three agents (Architect, Executor, Reviewer) work in a closed loop, with GitHub issues as the coordination layer.</p>
+		<p class="subtitle">Last Light uses role-based agent coordination to maintain your GitHub repos. Triggered from GitHub, Slack, or the CLI — three agents (Architect, Executor, Reviewer) work in a closed loop, with GitHub issues as the coordination layer.</p>
 	</section>
 
 	<!-- Inspiration -->
@@ -31,7 +31,8 @@ import Footer from '../components/Footer.astro';
 		<div class="callout-card">
 			<p>This approach was inspired by the <a href="https://x.com/realsigridjin/status/2039472968624185713" target="_blank" rel="noopener">claw-code article</a> by Sigrid Jin, which describes how the <strong>oh-my-codex (OmX)</strong> system rebuilt an entire codebase while the developer slept. The key insight:</p>
 			<blockquote>"The code is a byproduct. The thing worth studying is the system that produced it."</blockquote>
-			<p>The OmX system uses three tools working together: <a href="https://github.com/Yeachan-Heo/oh-my-codex" target="_blank" rel="noopener"><strong>oh-my-codex</strong></a> for workflow orchestration, <a href="https://github.com/Yeachan-Heo/clawhip" target="_blank" rel="noopener"><strong>clawhip</strong></a> for event routing, and <strong>oh-my-openagent</strong> for multi-agent coordination. We adapted the core patterns — role-based agents, closed development loops, and GitHub-first coordination — to work within the <a href="https://hermes-agent.nousresearch.com/" target="_blank" rel="noopener">Hermes Agent</a> framework.</p>
+			<p>The OmX system uses three tools working together: <a href="https://github.com/Yeachan-Heo/oh-my-codex" target="_blank" rel="noopener"><strong>oh-my-codex</strong></a> for workflow orchestration, <a href="https://github.com/Yeachan-Heo/clawhip" target="_blank" rel="noopener"><strong>clawhip</strong></a> for event routing, and <strong>oh-my-openagent</strong> for multi-agent coordination. We adapted the core patterns — role-based agents, closed development loops, and GitHub-first coordination — into a lightweight TypeScript harness built on the <a href="https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sdk" target="_blank" rel="noopener">Claude Agent SDK</a>.</p>
+			<p>The execution model — spawning Claude Code as an isolated subprocess per task with Docker sandboxing — was inspired by <a href="https://github.com/mattpocock/sandcastle" target="_blank" rel="noopener"><strong>Sandcastle</strong></a> by Matt Pocock, which demonstrated that the Claude CLI can be driven programmatically as a headless agent inside containers, with the harness managing orchestration and the agent managing the work.</p>
 		</div>
 	</section>
 
@@ -49,7 +50,7 @@ import Footer from '../components/Footer.astro';
 			</div>
 			<div class="principle-card">
 				<div class="principle-header"><div class="principle-num">3</div><h3>GitHub is the coordination layer</h3></div>
-				<p>All work is tracked through GitHub issues, regardless of where the request originates — Discord, Slack, CLI, or webhook. Build requests from chat platforms must create a GitHub issue first; the issue is the authorisation gate. Every phase posts progress. The result is a complete, auditable trail.</p>
+				<p>All work is tracked through GitHub issues, regardless of where the request originates — Slack, CLI, or webhook. Build requests from chat platforms must create a GitHub issue first; the issue is the authorisation gate. Every phase posts progress. The result is a complete, auditable trail.</p>
 			</div>
 			<div class="principle-card">
 				<div class="principle-header"><div class="principle-num">4</div><h3>Evidence over assertion</h3></div>
@@ -150,7 +151,7 @@ import Footer from '../components/Footer.astro';
 	<!-- The Loop -->
 	<section class="content-section">
 		<h2>The development loop</h2>
-		<p class="section-intro">The build cycle only starts when a repository <strong>maintainer explicitly @mentions the bot</strong> on a GitHub issue. Requests from Discord or Slack are never executed directly — the bot creates a GitHub issue first, and the build runs against that issue. This is a deliberate safety constraint: the GitHub issue is the authorisation gate, and all code changes have a traceable origin.</p>
+		<p class="section-intro">The build cycle only starts when a repository <strong>maintainer explicitly @mentions the bot</strong> on a GitHub issue. Requests from Slack are never executed directly — the bot creates a GitHub issue first, and the build runs against that issue. This is a deliberate safety constraint: the GitHub issue is the authorisation gate, and all code changes have a traceable origin.</p>
 
 		<div class="loop-diagram">
 			<svg viewBox="0 0 800 380" xmlns="http://www.w3.org/2000/svg" class="flow-svg">
@@ -225,7 +226,7 @@ import Footer from '../components/Footer.astro';
 				<div class="step-marker">0</div>
 				<div>
 					<h4>Pre-context intake + guardrails</h4>
-					<p>Ensure a GitHub issue exists (create one if the request came from Discord, Slack, or CLI). Clone the repo, read its <code>CLAUDE.md</code>/<code>AGENTS.md</code>, and assemble a context snapshot: what needs doing, what success looks like, what constraints exist, and what's unknown.</p>
+					<p>Ensure a GitHub issue exists (create one if the request came from Slack or CLI). Clone the repo, read its <code>CLAUDE.md</code>/<code>AGENTS.md</code>, and assemble a context snapshot: what needs doing, what success looks like, what constraints exist, and what's unknown.</p>
 					<p>Then run the <a href="https://github.com/cliftonc/lastlight/blob/main/skills/software-development/assure-guardrails/SKILL.md" target="_blank" rel="noopener">guardrails check</a>: verify the repo has a working test framework, linting, and type checking. If any are missing, the bot creates a separate issue for the gaps, links it to the original task, and fixes the foundations first. You can't do TDD without tests, and the Reviewer can't verify without a test suite to run.</p>
 				</div>
 			</div>
@@ -376,8 +377,8 @@ Constraint: must stay under 100ms p99 to avoid GitHub webhook timeout</code></pr
 		<div class="limitations-list">
 			<div class="limitation-card">
 				<h4>Sequential execution only</h4>
-				<p>The Hermes framework's <code>delegate_task</code> API is strictly sequential — the orchestrator waits for each subagent to complete before dispatching the next. OmX achieves parallelism through tmux-based workers and shared state files, which don't map to Hermes's Modal sandbox model. For now, the Architect→Executor→Reviewer cycle runs one phase at a time.</p>
-				<p class="limitation-future">Future: We're exploring a custom MCP tool for parallel agent dispatch, and Discord-based multi-agent coordination (the same approach OmX uses).</p>
+				<p>The orchestrator runs each phase sequentially — the Architect completes before the Executor starts, and the Executor completes before the Reviewer begins. OmX achieves parallelism through tmux-based workers and shared state files. For now, the Architect→Executor→Reviewer cycle runs one phase at a time, each in its own Docker sandbox container.</p>
+				<p class="limitation-future">Future: We're exploring parallel agent dispatch for independent subtasks within a single phase.</p>
 			</div>
 			<div class="limitation-card">
 				<h4>No persistent execution loops</h4>
@@ -408,22 +409,22 @@ Constraint: must stay under 100ms p99 to avoid GitHub webhook timeout</code></pr
 			<div class="comparison-row">
 				<span class="comparison-label">Runtime</span>
 				<span>OpenAI Codex CLI + tmux</span>
-				<span>Hermes Agent + Modal sandbox</span>
+				<span>Claude Agent SDK + Docker sandbox</span>
 			</div>
 			<div class="comparison-row">
 				<span class="comparison-label">Role system</span>
 				<span>33 prompt templates ($architect, $executor, etc.)</span>
-				<span>3 core roles (Architect, Executor, Reviewer) as skill + delegate_task prompts</span>
+				<span>3 core roles (Architect, Executor, Reviewer) as skill files + orchestrator prompts</span>
 			</div>
 			<div class="comparison-row">
 				<span class="comparison-label">Parallelism</span>
 				<span>tmux panes with shared state files + mailbox dispatch</span>
-				<span>Sequential (delegate_task blocks until complete)</span>
+				<span>Sequential (orchestrator runs phases one at a time)</span>
 			</div>
 			<div class="comparison-row">
 				<span class="comparison-label">Coordination</span>
 				<span>Discord channels via clawhip daemon</span>
-				<span>GitHub issues as authorisation gate; input from Discord, Slack, CLI</span>
+				<span>GitHub issues as authorisation gate; input from Slack, webhooks, CLI</span>
 			</div>
 			<div class="comparison-row">
 				<span class="comparison-label">Persistence</span>
@@ -433,7 +434,7 @@ Constraint: must stay under 100ms p99 to avoid GitHub webhook timeout</code></pr
 			<div class="comparison-row">
 				<span class="comparison-label">Event routing</span>
 				<span>clawhip daemon (background process)</span>
-				<span>Hermes webhook platform (built-in)</span>
+				<span>Deterministic TypeScript router (Hono webhooks)</span>
 			</div>
 			<div class="comparison-row">
 				<span class="comparison-label">Commits</span>
@@ -518,7 +519,7 @@ with file-backed evidence. You are strictly read-only.
 				<span>Weekly health report — open issues, stale items, PRs awaiting review, action items.</span>
 			</div>
 		</div>
-		<p class="section-note">All skill files live in the <a href="https://github.com/cliftonc/lastlight/tree/main/skills" target="_blank" rel="noopener"><code>skills/</code></a> directory. The agent personality is defined in <a href="https://github.com/cliftonc/lastlight/blob/main/SOUL.md" target="_blank" rel="noopener"><code>SOUL.md</code></a>.</p>
+		<p class="section-note">All skill files live in the <a href="https://github.com/cliftonc/lastlight/tree/main/skills" target="_blank" rel="noopener"><code>skills/</code></a> directory. The agent personality is defined in <a href="https://github.com/cliftonc/lastlight/blob/main/agent-context/soul.md" target="_blank" rel="noopener"><code>agent-context/soul.md</code></a>.</p>
 	</section>
 
 	<!-- Living Document -->

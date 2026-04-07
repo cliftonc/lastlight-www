@@ -27,7 +27,7 @@ import Footer from '../components/Footer.astro';
 	<section class="security-advisory">
 		<div class="advisory-card">
 			<h3>Run it outside your core infrastructure</h3>
-			<p>Last Light is a powerful autonomous agent. While it runs all code in a sandboxed terminal backend (Modal, Daytona, etc.), it is early-stage software that may have undetected security issues. Deploy it on an isolated host — a cheap VPS, a separate cloud project, or a dedicated VM — where it cannot reach sensitive internal systems, databases, or credentials beyond what it explicitly needs.</p>
+			<p>Last Light is a powerful autonomous agent. While it runs all code in isolated Docker sandbox containers, it is early-stage software that may have undetected security issues. Deploy it on an isolated host — a cheap VPS, a separate cloud project, or a dedicated VM — where it cannot reach sensitive internal systems, databases, or credentials beyond what it explicitly needs.</p>
 		</div>
 	</section>
 
@@ -48,66 +48,24 @@ git remote add upstream https://github.com/cliftonc/lastlight.git</code></pre>
 		<div class="step-block">
 			<h3><span class="step-label">Step 2</span> Configure secrets</h3>
 		<p class="section-desc">All secrets live in a <code>secrets/</code> directory that's gitignored and mounted read-only into the container.</p>
-		<pre><code># Copy the production template
-cp deploy/.env.production.example secrets/.env
-
-# Copy the config template
-cp config.yaml.example secrets/config.yaml
+		<pre><code># Copy the environment template
+cp .env.example secrets/.env
 
 # Place your GitHub App private key
 cp ~/path-to/your-app.private-key.pem secrets/</code></pre>
 		<p class="step-detail">Edit <code>secrets/.env</code> with your:</p>
 		<ul class="config-list">
-			<li><strong>LLM API key</strong> — Anthropic, OpenRouter, or another API-key provider. Note: <code>openai-codex</code> requires interactive OAuth login and won't work in headless Docker — use <code>openrouter</code> with <code>OPENROUTER_BASE_URL=https://api.openai.com/v1</code> for OpenAI models instead</li>
 			<li><strong>GitHub App credentials</strong> — App ID, Installation ID, and private key path</li>
-			<li><strong>Terminal backend credentials</strong> — Modal tokens or Daytona API key</li>
 			<li><strong>Webhook secret</strong> — must match your GitHub App's webhook settings</li>
 			<li><strong>Domain</strong> — your public hostname for automatic TLS (or <code>localhost</code> for dev)</li>
+			<li><strong>Anthropic API key</strong> — for Claude API access (or use <code>claude login</code> for subscription-based auth)</li>
+			<li><strong>Slack tokens</strong> (optional) — <code>SLACK_BOT_TOKEN</code> and <code>SLACK_APP_TOKEN</code> for Slack integration</li>
 		</ul>
-		<p class="step-detail">Edit <code>secrets/config.yaml</code> — the key setting is the terminal backend:</p>
-		<pre><code>terminal:
-  backend: modal    # recommended — see "Choose a backend" below</code></pre>
 		</div>
 
 		<div class="step-block">
-			<h3><span class="step-label">Step 3</span> Choose a terminal backend</h3>
-		<p class="section-desc">The terminal backend is where the agent runs code — cloning repos, editing files, running tests. It needs an isolated environment, not the host machine.</p>
-
-		<div class="backends-grid">
-			<div class="backend-card recommended">
-				<div class="badge">Recommended</div>
-				<h3>Modal</h3>
-				<p>Cloud VMs with auto-scaling and best isolation. Each task gets its own sandbox. No container management on your end.</p>
-				<pre><code># Get credentials (one-time)
-pip install modal
-modal token new
-
-# Add to secrets/.env
-MODAL_TOKEN_ID=ak-...
-MODAL_TOKEN_SECRET=as-...</code></pre>
-			</div>
-			<div class="backend-card">
-				<h3>Daytona</h3>
-				<p>Managed cloud environments. Good alternative if you prefer a different provider.</p>
-				<pre><code># Add to secrets/.env
-DAYTONA_API_KEY=...</code></pre>
-			</div>
-			<div class="backend-card">
-				<h3>SSH</h3>
-				<p>Use a remote server as the sandbox. Good if you already have infrastructure.</p>
-				<pre><code># Add to secrets/.env
-TERMINAL_SSH_HOST=192.168.1.100
-TERMINAL_SSH_USER=agent</code></pre>
-			</div>
-			<div class="backend-card warning">
-				<h3>Docker backend</h3>
-				<p>Not recommended when Last Light itself runs in Docker. Docker-in-Docker requires <code>--privileged</code>, causes storage driver conflicts, and is a security risk. Even its original creator advises against it.</p>
-			</div>
-		</div>
-
-		<div class="step-block">
-			<h3><span class="step-label">Step 4</span> Build & run</h3>
-		<p class="section-desc">The Docker image is self-contained — Hermes, the MCP server, all skills, and dependencies are baked in. Secrets are injected at runtime via the mounted volume.</p>
+			<h3><span class="step-label">Step 3</span> Build & run</h3>
+		<p class="section-desc">The Docker image is self-contained — Claude Code CLI, the MCP server, all skills, and dependencies are baked in. Secrets are injected at runtime via the mounted volume.</p>
 		<pre><code># Set your public domain (for Caddy TLS)
 export DOMAIN=lastlight.example.com
 
@@ -116,6 +74,11 @@ docker compose up -d
 
 # Watch the logs
 docker compose logs -f agent</code></pre>
+		<p class="step-detail">If this is your first time, log in to Claude Code inside the container:</p>
+		<pre><code># One-time auth — persists in the Docker volume
+docker exec -it lastlight-agent-1 claude login</code></pre>
+		<p class="step-detail">Follow the URL in your browser to authenticate. The auth token survives container restarts and rebuilds.</p>
+
 		<p class="step-detail">What happens:</p>
 		<ul class="config-list">
 			<li><strong>Agent container</strong> starts, symlinks your secrets, generates a GitHub token, and starts the webhook listener on port 8644</li>
@@ -160,7 +123,7 @@ services:
 		</div>
 
 		<div class="step-block">
-			<h3><span class="step-label">Step 5</span> Point GitHub webhooks</h3>
+			<h3><span class="step-label">Step 4</span> Point GitHub webhooks</h3>
 		<p class="section-desc">In your GitHub App settings, set the webhook URL and subscribe to events.</p>
 		<ul class="config-list">
 			<li><strong>Webhook URL:</strong> <code>https://lastlight.example.com/webhooks/github</code></li>
@@ -171,7 +134,7 @@ services:
 		</div>
 
 		<div class="step-block">
-			<h3><span class="step-label">Step 6</span> Running in Kubernetes <span class="step-label">optional</span></h3>
+			<h3><span class="step-label">Step 5</span> Running in Kubernetes <span class="step-label">optional</span></h3>
 		<p class="section-desc">The same Docker image works in K8s. Skip Caddy — use your cluster's Ingress controller for TLS instead.</p>
 		<pre><code>apiVersion: apps/v1
 kind: Deployment
@@ -216,7 +179,7 @@ spec:
   ports:
   - port: 8644
     targetPort: 8644</code></pre>
-		<p class="section-note">Create the K8s Secret from your local files: <code>kubectl create secret generic lastlight-secrets --from-file=.env=secrets/.env --from-file=config.yaml=secrets/config.yaml --from-file=your-app.pem=secrets/your-app.private-key.pem</code></p>
+		<p class="section-note">Create the K8s Secret from your local files: <code>kubectl create secret generic lastlight-secrets --from-file=.env=secrets/.env --from-file=your-app.pem=secrets/your-app.private-key.pem</code></p>
 		</div>
 	</section>
 
@@ -231,7 +194,7 @@ spec:
 git merge upstream/main
 docker compose build
 docker compose up -d</code></pre>
-				<p>This also updates Hermes Agent (installed from source during the build). To pick up the latest Hermes without any Last Light changes, just rebuild:</p>
+				<p>This also updates Claude Code CLI (installed during the build). To pick up the latest CLI without any Last Light changes, just rebuild:</p>
 				<pre><code>docker compose build --no-cache agent
 docker compose up -d agent</code></pre>
 			</div>
@@ -245,7 +208,7 @@ docker compose up -d agent</code></pre>
 			</div>
 			<div class="tip-card">
 				<h3>LLM costs</h3>
-				<p>Each triage or review is ~1 LLM call. Build requests use more tokens. Set a <code>fallback_model</code> in config.yaml to avoid downtime when your provider rate-limits.</p>
+				<p>Each triage or review is ~1 agent session. Build requests use more tokens. Locally, your Claude Code subscription covers the cost. For production, costs depend on your <code>ANTHROPIC_API_KEY</code> usage.</p>
 			</div>
 			<div class="tip-card">
 				<h3>Logs</h3>

@@ -69,6 +69,13 @@ import Footer from '../components/Footer.astro';
 				<h3>Build on Request</h3>
 				<p>@mention the bot on an issue and it builds the feature. Checks guardrails first (tests, linting, types), then Architect plans, Executor codes, Reviewer verifies, PR opens. <a href="/how-it-works">See how it works.</a></p>
 			</div>
+			<div class="feature-card">
+				<div class="feature-icon">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+				</div>
+				<h3>Admin Dashboard</h3>
+				<p>Built-in web dashboard at <code>/admin</code> — live session viewer, execution history, running containers, and real-time streaming of agent output. Full audit trail for every action.</p>
+			</div>
 		</div>
 	</section>
 
@@ -76,8 +83,8 @@ import Footer from '../components/Footer.astro';
 	<section class="how-it-works">
 		<h2>How it works</h2>
 		<p class="section-desc">
-			Built on <a href="https://hermes-agent.nousresearch.com/" target="_blank" rel="noopener">Hermes Agent</a>
-			with a custom MCP server packing 28 GitHub tools.
+			Built on the <a href="https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sdk" target="_blank" rel="noopener">Claude Agent SDK</a>
+			with a custom MCP server packing 28+ GitHub tools.
 			Authenticates as its own GitHub App — every action is clearly from the bot, not you.
 		</p>
 		<div class="architecture">
@@ -85,7 +92,7 @@ import Footer from '../components/Footer.astro';
 				<span class="step-num">1</span>
 				<div>
 					<strong>Point it at your repos</strong>
-					<p>List what you want watched in <code>.hermes.md</code></p>
+					<p>List what you want watched in <code>agent-context/rules.md</code></p>
 				</div>
 			</div>
 			<div class="arch-step">
@@ -118,14 +125,17 @@ import Footer from '../components/Footer.astro';
 		<h2>Light it up</h2>
 
 		<div class="step-block">
-			<h3><span class="step-label">Step 1</span> Install Hermes Agent</h3>
-			<pre><code>curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash</code></pre>
+			<h3><span class="step-label">Step 1</span> Install Claude Code CLI</h3>
+			<pre><code>curl -fsSL https://claude.ai/install.sh | bash
+claude login</code></pre>
+			<p>The Agent SDK uses your Claude Code login (subscription). No separate API key needed. To use an API key instead, set <code>ANTHROPIC_API_KEY</code> in <code>.env</code>.</p>
 		</div>
 
 		<div class="step-block">
 			<h3><span class="step-label">Step 2</span> Clone Last Light</h3>
 			<pre><code>git clone https://github.com/cliftonc/lastlight.git
-cd lastlight</code></pre>
+cd lastlight
+npm install</code></pre>
 		</div>
 
 		<div class="step-block">
@@ -144,204 +154,59 @@ cd lastlight</code></pre>
 
 		<div class="step-block">
 			<h3><span class="step-label">Step 4</span> Configure</h3>
-			<pre><code>cp .env.example .env
-cp config.yaml.example config.yaml</code></pre>
+			<pre><code>cp .env.example .env</code></pre>
 			<p>Fill in your GitHub App credentials in <code>.env</code>:</p>
 			<pre><code>GITHUB_APP_ID=123456
 GITHUB_APP_PRIVATE_KEY_PATH=./your-app.private-key.pem
-GITHUB_APP_INSTALLATION_ID=789012</code></pre>
-			<p>Then add your repos to <code>.hermes.md</code>:</p>
+GITHUB_APP_INSTALLATION_ID=789012
+WEBHOOK_SECRET=your-secret-here</code></pre>
+			<p>Then add your repos to <code>agent-context/rules.md</code>:</p>
 			<pre><code>## Managed Repositories
 - yourname/your-repo
 - yourname/another-repo</code></pre>
 		</div>
 
 		<div class="step-block">
-			<h3><span class="step-label">Step 5</span> Choose a model</h3>
-			<p>Last Light needs an LLM to think with. Set the provider and model in <code>config.yaml</code>:</p>
-			<pre><code>model:
-  default: anthropic/claude-sonnet-4  # or any model your provider supports
-  provider: openrouter                # routes to 100+ models via one key</code></pre>
-			<p>Then add your API key to <code>.env</code>. Pick whichever provider you prefer:</p>
+			<h3><span class="step-label">Step 5</span> Run it</h3>
+			<pre><code># Start the server (with hot reload)
+npm run dev</code></pre>
+			<p>Then trigger work via the CLI in another terminal:</p>
+			<pre><code># Build cycle for a specific issue
+npx tsx src/cli.ts https://github.com/owner/repo/issues/42
+npx tsx src/cli.ts owner/repo#42          # shorthand
 
-			<div class="backends-grid">
-				<div class="backend-card">
-					<h4><a href="https://openrouter.ai" target="_blank" rel="noopener">OpenRouter</a></h4>
-					<p>One API key, many models. OpenAI, Anthropic, Google, open-source — all through one endpoint.</p>
-					<pre><code>OPENROUTER_API_KEY=sk-or-...</code></pre>
-				</div>
-				<div class="backend-card">
-					<h4>OpenAI</h4>
-					<p>Direct access to GPT and Codex models.</p>
-					<pre><code>provider: openai
-# or: provider: openai-codex</code></pre>
-				</div>
-				<div class="backend-card">
-					<h4>Anthropic</h4>
-					<p>Direct access to Claude models.</p>
-					<pre><code>provider: anthropic</code></pre>
-				</div>
-				<div class="backend-card">
-					<h4>AWS Bedrock</h4>
-					<p>Use models via your AWS account. Needs AWS credentials configured.</p>
-					<pre><code>provider: bedrock</code></pre>
-				</div>
-				<div class="backend-card">
-					<h4><a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener">Hugging Face</a></h4>
-					<p>Open models via inference providers. Free tier included.</p>
-					<pre><code>HF_TOKEN=hf_...</code></pre>
-				</div>
-				<div class="backend-card">
-					<h4><a href="https://opencode.ai" target="_blank" rel="noopener">OpenCode</a></h4>
-					<p>Curated models (GPT, Claude, Gemini, open-source). Pay-as-you-go.</p>
-					<pre><code>OPENCODE_ZEN_API_KEY=...</code></pre>
-				</div>
-			</div>
+# Run maintenance tasks
+npx tsx src/cli.ts triage owner/repo      # triage scan
+npx tsx src/cli.ts review owner/repo      # PR review scan
+npx tsx src/cli.ts health owner/repo      # health report</code></pre>
+			<p>The CLI talks to the running server — it does not execute agents directly. Start the server first.</p>
 		</div>
 
 		<div class="step-block">
-			<h3><span class="step-label">Step 6</span> Pick a terminal backend</h3>
-			<p>Last Light runs commands through Hermes Agent's terminal. By default it uses <code>local</code> — commands run directly on your machine. For isolation or remote execution, pick a different backend in <code>config.yaml</code>. See the <a href="https://hermes-agent.nousresearch.com/docs/user-guide/configuration" target="_blank" rel="noopener">Hermes configuration docs</a> for full details:</p>
+			<h3><span class="step-label">Step 6</span> Set up GitHub webhooks</h3>
+			<p>Make Last Light react to repo events in real time — new issues, PRs, comments. The webhook listener is built into the server and starts automatically on port <code>8644</code>.</p>
 
-			<div class="backends-grid">
-				<div class="backend-card">
-					<h4>Docker</h4>
-					<p>Sandboxed container with dropped capabilities, PID limits, and tmpfs. Needs Docker installed.</p>
-					<pre><code>terminal:
-  backend: docker</code></pre>
-				</div>
-				<div class="backend-card">
-					<h4><a href="https://modal.com" target="_blank" rel="noopener">Modal</a></h4>
-					<p>Cloud VM sandbox. Ephemeral, scalable, great for evals. Needs a Modal account.</p>
-					<pre><code>terminal:
-  backend: modal</code></pre>
-					<p>Set <code>MODAL_TOKEN_ID</code> and <code>MODAL_TOKEN_SECRET</code> in <code>.env</code>.</p>
-				</div>
-				<div class="backend-card">
-					<h4>SSH</h4>
-					<p>Run on a remote server. Persistent shell with connection reuse. Good for beefy hardware.</p>
-					<pre><code>terminal:
-  backend: ssh</code></pre>
-					<p>Set <code>TERMINAL_SSH_HOST</code> and <code>TERMINAL_SSH_USER</code> in <code>.env</code>.</p>
-				</div>
-				<div class="backend-card">
-					<h4><a href="https://www.daytona.io/" target="_blank" rel="noopener">Daytona</a></h4>
-					<p>Managed cloud dev environment with stop/resume. Needs a Daytona API key.</p>
-					<pre><code>terminal:
-  backend: daytona</code></pre>
-				</div>
-				<div class="backend-card">
-					<h4><a href="https://apptainer.org/" target="_blank" rel="noopener">Singularity</a></h4>
-					<p>For HPC clusters and shared machines where Docker isn't available. Uses Apptainer/Singularity.</p>
-					<pre><code>terminal:
-  backend: singularity</code></pre>
-				</div>
-				<div class="backend-card backend-not-recommended">
-					<h4>Local <span class="badge-warn">not recommended</span></h4>
-					<p>Commands run directly on your machine. No isolation — the agent has full access to your filesystem.</p>
-					<pre><code>terminal:
-  backend: local</code></pre>
-				</div>
-			</div>
-
-			<p>All container backends support resource limits:</p>
-			<pre><code>terminal:
-  container_cpu: 1         # CPU cores
-  container_memory: 5120   # Memory in MB
-  container_disk: 51200    # Disk in MB
-  container_persistent: true</code></pre>
-		</div>
-
-		<div class="step-block">
-			<h3><span class="step-label">Step 7</span> Connect a gateway <span class="step-label">optional</span></h3>
-			<p>Talk to Last Light from Discord, Slack, Telegram, and more. Build requests from chat always go through GitHub first — the bot creates an issue and runs the build against it, so every code change has a traceable origin. See the <a href="https://hermes-agent.nousresearch.com/docs/user-guide/messaging" target="_blank" rel="noopener">Hermes gateway docs</a> for the full list. Run the setup wizard:</p>
-			<pre><code>./lastlight gateway setup</code></pre>
-			<p>Then run it as a persistent service:</p>
-			<pre><code>./lastlight gateway            # run in foreground
-./lastlight gateway install    # install as a system service</code></pre>
-
-			<div class="gateway-grid">
-				<div class="gateway-card">
-					<h4>Discord</h4>
-					<p>Create a bot at the <a href="https://discord.com/developers/applications" target="_blank" rel="noopener">Discord Developer Portal</a>. Enable <strong>Presence Intent</strong> and <strong>Message Content Intent</strong> under Privileged Gateway Intents or the bot won't connect.</p>
-					<pre><code>DISCORD_BOT_TOKEN=your-token
-DISCORD_HOME_CHANNEL=channel-id</code></pre>
-				</div>
-				<div class="gateway-card">
-					<h4>Slack</h4>
-					<p>Create an app at <a href="https://api.slack.com/apps" target="_blank" rel="noopener">api.slack.com/apps</a> with bot token scopes, then set in <code>.env</code>:</p>
-					<pre><code>SLACK_BOT_TOKEN=xoxb-...
-SLACK_APP_TOKEN=xapp-...</code></pre>
-				</div>
-				<div class="gateway-card">
-					<h4>Telegram</h4>
-					<p>Create a bot via <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a>, then set in <code>.env</code>:</p>
-					<pre><code>TELEGRAM_BOT_TOKEN=your-token
-TELEGRAM_HOME_CHANNEL=chat-id</code></pre>
-				</div>
-			</div>
-		</div>
-
-		<div class="step-block">
-			<h3><span class="step-label">Step 8</span> Set up GitHub webhooks <span class="step-label">optional</span></h3>
-			<p>Make Last Light react to repo events in real time — new issues, PRs, comments. This uses a single webhook endpoint that your GitHub App sends all events to. The agent decides what to act on based on the prompt you configure.</p>
-
-			<h4>1. Enable the webhook platform</h4>
-			<p>Add to <code>config.yaml</code>:</p>
-			<pre><code>platforms:
-  webhook:
-    enabled: true
-    extra:
-      host: "0.0.0.0"
-      port: 8644
-      routes:
-        github:
-          secret: "your-webhook-secret"
-          events: ["issues", "pull_request", "issue_comment"]
-          skills: ["github-orchestrator"]
-          prompt: |
-            GitHub event: &#123;_event_type&#125;, action: &#123;action&#125;
-            Repository: &#123;repository.full_name&#125;
-            Issue/PR: #&#123;issue.number&#125; &#123;issue.title&#125;
-            Author: &#123;issue.user.login&#125;
-            Body: &#123;issue.body&#125;
-          deliver: log</code></pre>
-			<p>The <code>prompt</code> passes event data to the agent. The actual logic — what to act on, what to ignore — lives in the <code>github-orchestrator</code> skill at <code>skills/github-orchestrator/SKILL.md</code>, which is easy to customise.</p>
-
-			<h4>2. Configure your GitHub App</h4>
-			<p>In your GitHub App settings, enable the webhook and set:</p>
+			<p>In your GitHub App settings, set:</p>
 			<ul class="permissions-list">
-				<li><strong>Webhook URL</strong> — <code>http://your-host:8644/webhooks/github</code></li>
-				<li><strong>Secret</strong> — same secret as in <code>config.yaml</code></li>
+				<li><strong>Webhook URL</strong> — <code>https://your-host:8644/webhooks/github</code></li>
+				<li><strong>Secret</strong> — same value as <code>WEBHOOK_SECRET</code> in <code>.env</code></li>
 			</ul>
-			<p>The endpoint must be publicly reachable. Use <a href="https://ngrok.com" target="_blank" rel="noopener">ngrok</a> or <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/" target="_blank" rel="noopener">Cloudflare Tunnel</a> if running locally.</p>
-
-			<h4>3. Choose what happens</h4>
-			<p>The <code>deliver</code> option controls where the agent's response goes:</p>
-			<div class="gateway-grid">
-				<div class="gateway-card">
-					<h4><code>log</code></h4>
-					<p>Just log the response. Good for testing — check the gateway logs to see what the agent would do.</p>
-				</div>
-				<div class="gateway-card">
-					<h4><code>github_comment</code></h4>
-					<p>Post the response back as a comment on the issue or PR that triggered it.</p>
-				</div>
-				<div class="gateway-card">
-					<h4><code>discord</code> / <code>slack</code> / <code>telegram</code></h4>
-					<p>Forward the response to your configured messaging channel.</p>
-				</div>
-			</div>
-
-			<p>Filter by event type using <code>events</code> — only listed types trigger the agent. The agent handles finer-grained logic (like ignoring edits or bot authors) via the prompt.</p>
+			<p>Subscribe to events: <strong>Issues</strong>, <strong>Pull requests</strong>, <strong>Issue comments</strong>, <strong>PR reviews</strong>.</p>
+			<p>The endpoint must be publicly reachable. Use <a href="https://ngrok.com" target="_blank" rel="noopener">ngrok</a> or <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/" target="_blank" rel="noopener">Cloudflare Tunnel</a> for testing, or deploy with the included Caddy reverse proxy for automatic TLS. See <a href="/run-it">Run It for Real</a> for production setup.</p>
+			<p>The deterministic event router handles the logic — <code>issue.opened</code> triggers triage, <code>pr.opened</code> triggers review, <code>@mention</code> from a maintainer triggers the full build cycle. No configuration needed beyond the webhook URL and secret.</p>
 		</div>
 
 		<div class="step-block">
-			<h3><span class="step-label">Step 9</span> Run it</h3>
-			<pre><code>./lastlight</code></pre>
-			<p>That's it. You can also run single commands:</p>
-			<pre><code>./lastlight chat -q "Review the latest PR on yourname/your-repo"
-./lastlight chat -q "Triage open issues on yourname/another-repo"</code></pre>
+			<h3><span class="step-label">Step 7</span> Connect Slack <span class="step-label">optional</span></h3>
+			<p>Talk to Last Light from Slack. Uses Socket Mode (WebSocket) — no public URL needed. The bot responds to DMs and @mentions in channels, with multi-turn conversation support.</p>
+
+			<p>Create an app at <a href="https://api.slack.com/apps" target="_blank" rel="noopener">api.slack.com/apps</a> with Socket Mode enabled and bot token scopes for messaging, then add to <code>.env</code>:</p>
+			<pre><code>SLACK_BOT_TOKEN=xoxb-...
+SLACK_APP_TOKEN=xapp-...</code></pre>
+			<p>Optionally restrict access and set a delivery channel for cron reports:</p>
+			<pre><code>SLACK_ALLOWED_USERS=U01ABC,U02DEF    # limit who can interact
+SLACK_DELIVERY_CHANNEL=C01XYZ        # channel for health reports</code></pre>
+			<p>Chat interactions are read-only by default — the bot can answer questions and create issues, but won't make code changes from Slack. Build requests go through GitHub.</p>
 		</div>
 	</section>
 
