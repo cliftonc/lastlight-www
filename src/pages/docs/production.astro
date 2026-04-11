@@ -1,0 +1,163 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+<DocsLayout
+	slug="production"
+	description="Deploy Last Light to a production host with Docker Compose, Caddy TLS, and persistent state."
+>
+	<p>
+		Production is a single Docker host running two containers: the Last Light agent and
+		a Caddy reverse proxy that handles HTTPS automatically. State lives in one Docker
+		volume. The footprint is intentionally small — this is meant to run on a cheap VPS
+		you own, not your production cluster.
+	</p>
+
+	<div class="docs-callout warn">
+		<div class="docs-callout-body">
+			<strong>Deploy on an isolated host.</strong> Last Light runs arbitrary code
+			from Claude inside Docker sandbox containers. While that isolation is strong, it
+			is early-stage software and may have undiscovered weaknesses. Put it on a host
+			that cannot reach your internal systems, databases, or credentials beyond what it
+			explicitly needs.
+		</div>
+	</div>
+
+	<h2>1. Fork and clone</h2>
+
+	<pre><code>git clone https://github.com/YOUR-USER/lastlight.git
+cd lastlight
+git remote add upstream https://github.com/cliftonc/lastlight.git</code></pre>
+
+	<p>
+		Forking is recommended so you can tweak workflows, prompts, and agent context to
+		match your project. Pull from <code>upstream</code> when you want updates.
+	</p>
+
+	<h2>2. Lay out <code>secrets/</code></h2>
+
+	<p>
+		Secrets live in a <code>secrets/</code> directory that's gitignored and mounted
+		read-only into the container.
+	</p>
+
+	<pre><code>mkdir -p secrets
+cp .env.example secrets/.env
+cp /path/to/your-app.private-key.pem secrets/</code></pre>
+
+	<p>Edit <code>secrets/.env</code> and fill in at minimum:</p>
+
+	<ul>
+		<li><code>GITHUB_APP_ID</code>, <code>GITHUB_APP_INSTALLATION_ID</code>, <code>GITHUB_APP_PRIVATE_KEY_PATH</code></li>
+		<li><code>WEBHOOK_SECRET</code></li>
+		<li><code>DOMAIN</code> — your public hostname, used by Caddy for automatic TLS</li>
+		<li><code>ANTHROPIC_API_KEY</code> — optional; skip if using Claude subscription auth</li>
+	</ul>
+
+	<p>
+		See the <a href="/docs/configuration">Configuration reference</a> for every
+		variable the harness understands, including optional knobs like
+		<code>CLAUDE_MODELS</code>, <code>APPROVAL_GATES</code>,
+		<code>ADMIN_PASSWORD</code>, and the Slack OAuth group.
+	</p>
+
+	<h2>3. Build and start</h2>
+
+	<pre><code># Point Caddy at your domain
+echo "DOMAIN=lastlight.example.com" >> secrets/.env
+
+# Build and start both containers
+docker compose build agent
+docker compose up -d
+
+# Tail the logs
+docker compose logs -f agent</code></pre>
+
+	<p>
+		Caddy reads <code>DOMAIN</code> from the environment and provisions a Let's
+		Encrypt certificate on first start. DNS must already resolve to the host.
+	</p>
+
+	<h2>4. First-time Claude auth (subscription mode)</h2>
+
+	<p>
+		If you're using the Claude subscription (no <code>ANTHROPIC_API_KEY</code>), log
+		in once inside the container. <strong>Always pass <code>--user lastlight</code></strong>
+		— logging in as root corrupts the credentials file and breaks MCP auth.
+	</p>
+
+	<pre><code>docker exec -it --user lastlight lastlight-agent-1 claude login</code></pre>
+
+	<p>
+		Follow the printed URL in your browser. The token persists in the Docker volume
+		and survives restarts and rebuilds.
+	</p>
+
+	<h2>5. Verify it's running</h2>
+
+	<pre><code>curl https://lastlight.example.com/health
+# &#123; "status": "ok" &#125;
+
+# Invalid webhook signature — returns 401, confirms the listener works
+curl -X POST https://lastlight.example.com/webhooks/github -d '&#123;&#125;'</code></pre>
+
+	<p>
+		Open <code>https://lastlight.example.com/admin</code> in a browser and check the
+		Home tab. You should see live activity stats, recent workflows, and resource usage.
+	</p>
+
+	<h2>6. Wire up the webhook</h2>
+
+	<p>Back in your GitHub App settings:</p>
+
+	<ul>
+		<li><strong>Webhook URL</strong> → <code>https://lastlight.example.com/webhooks/github</code></li>
+		<li><strong>Webhook secret</strong> → same value as <code>WEBHOOK_SECRET</code> in <code>secrets/.env</code></li>
+		<li>Make sure <strong>Active</strong> is enabled.</li>
+	</ul>
+
+	<p>
+		Create a test issue on a repo where the App is installed; Last Light should react
+		within a few seconds and you'll see a new run appear on the dashboard Workflows
+		tab.
+	</p>
+
+	<h2>State and persistence</h2>
+
+	<p>
+		All persistent state lives under <code>/app/data</code> inside the container,
+		mounted as a Docker volume:
+	</p>
+
+	<ul>
+		<li><code>lastlight.db</code> — SQLite: executions, workflow runs, approvals, messaging sessions, rate limits, system status.</li>
+		<li><code>claude-home/projects/</code> — Agent SDK session JSONL files (the full audit trail for every run).</li>
+		<li><code>sandboxes/</code> — cloned repos, one per task.</li>
+		<li><code>logs/</code> — structured harness logs.</li>
+		<li><code>secrets/app.pem</code> — mode-600 copy of the GitHub App key, used by sandbox containers via the shared volume.</li>
+	</ul>
+
+	<p>Back this volume up if you care about the audit trail.</p>
+
+	<h2>Updating</h2>
+
+	<pre><code>git fetch upstream
+git merge upstream/main
+docker compose build agent
+docker compose up -d agent</code></pre>
+
+	<p>
+		Sessions and the database survive rebuilds because they live in the volume, not
+		the image.
+	</p>
+
+	<div class="docs-next">
+		<a href="/docs/local-dev">
+			<span class="label">← Previous</span>
+			<span class="title">Run it locally</span>
+		</a>
+		<a href="/docs/slack" class="next">
+			<span class="label">Next →</span>
+			<span class="title">Slack integration</span>
+		</a>
+	</div>
+</DocsLayout>

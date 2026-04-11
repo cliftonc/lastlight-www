@@ -1,0 +1,145 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+<DocsLayout
+	slug="local-dev"
+	description="Clone, configure, and run Last Light on your dev machine — agents still run in real Docker sandboxes."
+>
+	<p>
+		Local dev runs the harness on your host (so you get hot reload) but spawns every
+		agent task in a real Docker sandbox, exactly like production. This is deliberate:
+		it's the only honest way to develop against the bot's actual execution model.
+	</p>
+
+	<h2>1. Clone and install</h2>
+
+	<pre><code>git clone https://github.com/cliftonc/lastlight.git
+cd lastlight
+npm install</code></pre>
+
+	<h2>2. Create <code>.env</code></h2>
+
+	<pre><code>cp .env.example .env</code></pre>
+
+	<p>Edit <code>.env</code> and fill in the four values you collected in the previous step:</p>
+
+	<pre><code>GITHUB_APP_ID=123456
+GITHUB_APP_PRIVATE_KEY_PATH=./your-app.private-key.pem
+GITHUB_APP_INSTALLATION_ID=789012
+WEBHOOK_SECRET=your-webhook-secret</code></pre>
+
+	<p>
+		Drop the <code>.pem</code> file into the project root (or wherever
+		<code>GITHUB_APP_PRIVATE_KEY_PATH</code> points). It's already in
+		<code>.gitignore</code>, so you won't accidentally commit it.
+	</p>
+
+	<h2>3. Build the sandbox image (one-time)</h2>
+
+	<pre><code>docker compose --profile build-only build sandbox</code></pre>
+
+	<p>
+		This builds the <code>sandbox</code> image that every agent task runs inside. You
+		only need to rebuild it when <code>sandbox.Dockerfile</code> changes.
+	</p>
+
+	<h2>4. Log in to Claude Code (if using subscription auth)</h2>
+
+	<pre><code>claude login</code></pre>
+
+	<p>
+		The harness reads your host credentials once and seeds them into
+		<code>./data/sandbox-claude-home/</code> on every start. If you later refresh your
+		login, the next <code>npm run dev</code> picks it up automatically.
+	</p>
+
+	<p>
+		If you're using API-key mode instead, just set <code>ANTHROPIC_API_KEY</code> in
+		<code>.env</code> and skip this step.
+	</p>
+
+	<h2>5. Start the harness</h2>
+
+	<pre><code># Server + dashboard, with hot reload
+npm run dev
+
+# Or individually
+npm run dev:server
+npm run dev:dashboard</code></pre>
+
+	<p>Under the hood, <code>npm run dev:server</code> calls <code>scripts/dev-local.sh</code>, which:</p>
+
+	<ul>
+		<li>Verifies Docker is running and the sandbox image exists.</li>
+		<li>Re-seeds <code>./data/sandbox-claude-home/.credentials.json</code> from your host credentials.</li>
+		<li>
+			Sets safe defaults: <code>LASTLIGHT_LOCAL_DEV=1</code>,
+			<code>SANDBOX_DATA_VOLUME=./data/sandbox-claude-home</code>,
+			<code>STATE_DIR=./data</code>, <code>ENABLE_DIRECT_FALLBACK=false</code>.
+		</li>
+		<li>Launches the harness with <code>tsx watch src/index.ts</code>.</li>
+	</ul>
+
+	<div class="docs-callout tip">
+		<div class="docs-callout-body">
+			<code>LASTLIGHT_LOCAL_DEV=1</code> tells the harness <strong>not</strong> to
+			touch your personal <code>~/.gitconfig</code>, <code>~/.claude/</code> history,
+			or keychain. Everything sandbox-related stays inside
+			<code>./data/</code>. Safe to run on a dev laptop.
+		</div>
+	</div>
+
+	<h2>6. Trigger work via the CLI</h2>
+
+	<p>The CLI is a thin HTTP client — it POSTs to the running server. Open a second terminal:</p>
+
+	<pre><code># Cheap defaults — single agent invocation
+npx tsx src/cli.ts owner/repo#42                          # triage one issue
+npx tsx src/cli.ts https://github.com/owner/repo/pull/99  # review one PR
+npx tsx src/cli.ts triage owner/repo                       # scan repo for new issues
+npx tsx src/cli.ts review owner/repo                       # scan repo for PRs to review
+npx tsx src/cli.ts health owner/repo                       # weekly-style health report
+
+# Expensive, opt-in — full Architect → Executor → Reviewer → PR cycle
+npx tsx src/cli.ts build owner/repo#42</code></pre>
+
+	<p>
+		The default action for a single-issue or single-PR shorthand is the cheap one
+		(triage / review). Build cycles are always opt-in via the explicit <code>build</code>
+		subcommand.
+	</p>
+
+	<h2>7. Open the dashboard</h2>
+
+	<p>
+		The admin dashboard is served at <a href="http://localhost:8644/admin" target="_blank" rel="noopener">http://localhost:8644/admin</a>.
+		It has four tabs: <strong>Home</strong>, <strong>Workflows</strong>,
+		<strong>Sandbox Sessions</strong>, and <strong>Chat Sessions</strong>. You can
+		watch sessions stream live, drill into any run, and resolve approval gates.
+	</p>
+
+	<p>
+		If you set <code>ADMIN_PASSWORD</code> in <code>.env</code>, the dashboard will
+		prompt for it. Otherwise it's open.
+	</p>
+
+	<h2>Optional: receive real webhooks</h2>
+
+	<p>
+		To receive real GitHub webhooks in local dev, expose port <code>8644</code> with
+		<code>ngrok</code> or <code>cloudflared</code> and point your GitHub App's webhook
+		URL at the public tunnel. Without webhooks you can still trigger every workflow
+		via the CLI.
+	</p>
+
+	<div class="docs-next">
+		<a href="/docs/github-app">
+			<span class="label">← Previous</span>
+			<span class="title">Create a GitHub App</span>
+		</a>
+		<a href="/docs/production" class="next">
+			<span class="label">Next →</span>
+			<span class="title">Production deploy</span>
+		</a>
+	</div>
+</DocsLayout>

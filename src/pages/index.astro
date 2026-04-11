@@ -9,8 +9,29 @@ import Footer from '../components/Footer.astro';
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<link rel="icon" type="image/png" href="/logo.png" />
+	<link rel="canonical" href="https://lastlight.dev/" />
+	<link rel="sitemap" href="/sitemap-index.xml" />
 	<title>Last Light — GitHub Maintenance Agent</title>
 	<meta name="description" content="An open-source agent that keeps the lights on in your GitHub repos. Triages issues, reviews PRs, monitors repo health — so you can focus elsewhere." />
+
+	<!-- Open Graph -->
+	<meta property="og:type" content="website" />
+	<meta property="og:site_name" content="Last Light" />
+	<meta property="og:title" content="Last Light — GitHub Maintenance Agent" />
+	<meta property="og:description" content="An open-source agent that keeps the lights on in your GitHub repos. Triages issues, reviews PRs, monitors repo health — so you can focus elsewhere." />
+	<meta property="og:url" content="https://lastlight.dev/" />
+	<meta property="og:image" content="https://lastlight.dev/logo-512.png" />
+	<meta property="og:image:width" content="512" />
+	<meta property="og:image:height" content="512" />
+	<meta property="og:image:alt" content="Last Light logo" />
+
+	<!-- Twitter -->
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content="Last Light — GitHub Maintenance Agent" />
+	<meta name="twitter:description" content="An open-source agent that keeps the lights on in your GitHub repos. Triages issues, reviews PRs, monitors repo health — so you can focus elsewhere." />
+	<meta name="twitter:image" content="https://lastlight.dev/logo-512.png" />
+	<meta name="twitter:image:alt" content="Last Light logo" />
+
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -40,6 +61,7 @@ import Footer from '../components/Footer.astro';
 	<!-- What it does -->
 	<section class="features" id="features">
 		<h2>Keeping the lights on</h2>
+		<p class="section-desc">Issue triage, PR review, on-request builds, weekly health reports, Slack chat — all driven by YAML workflows you can fork and edit.</p>
 		<div class="feature-grid">
 			<div class="feature-card">
 				<div class="feature-icon">
@@ -60,21 +82,42 @@ import Footer from '../components/Footer.astro';
 					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
 				</div>
 				<h3>Health Reports</h3>
-				<p>Monday morning summary of what's piling up, what's gone stale, and what needs you.</p>
+				<p>Monday morning summary of what's piling up, what's gone stale, and what needs you. Delivered to Slack.</p>
 			</div>
 			<div class="feature-card">
 				<div class="feature-icon">
 					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
 				</div>
 				<h3>Build on Request</h3>
-				<p>@mention the bot on an issue and it builds the feature. Checks guardrails first (tests, linting, types), then Architect plans, Executor codes, Reviewer verifies, PR opens. <a href="/how-it-works">See how it works.</a></p>
+				<p>@mention the bot on an issue and it runs the full Guardrails → Architect → Executor → Reviewer cycle with fix-feedback loops, then opens a PR. <a href="/how-it-works">See how it works.</a></p>
 			</div>
 			<div class="feature-card">
 				<div class="feature-icon">
-					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
 				</div>
-				<h3>Admin Dashboard</h3>
-				<p>Built-in web dashboard at <code>/admin</code> — live session viewer, execution history, running containers, and real-time streaming of agent output. Full audit trail for every action.</p>
+				<h3>Slack Chat</h3>
+				<p>DM the bot or @mention it in a channel. Every thread becomes a growing conversation — the agent resumes the same session on every turn, so context holds for hours or days. Every turn persisted.</p>
+			</div>
+			<div class="feature-card">
+				<div class="feature-icon">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.66 0 3.22.45 4.56 1.24"/></svg>
+				</div>
+				<h3>Approval Gates</h3>
+				<p>Workflows can pause at human-in-the-loop checkpoints. Approve or reject from a GitHub comment, a Slack slash command, or the dashboard — the run resumes exactly where it stopped.</p>
+			</div>
+			<div class="feature-card">
+				<div class="feature-icon">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+				</div>
+				<h3>YAML Workflows</h3>
+				<p>Every behavior — triage, review, build, health — is a YAML workflow you can fork. Phases run linear or as a DAG. The runner knows nothing about "build" vs "triage"; it just executes what you declare.</p>
+			</div>
+			<div class="feature-card">
+				<div class="feature-icon">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+				</div>
+				<h3>Permission Profiles</h3>
+				<p>Every workflow runs with a downscoped GitHub App token: <code>read</code>, <code>issues-write</code>, <code>review-write</code>, or <code>repo-write</code>. A triage run literally cannot push code.</p>
 			</div>
 		</div>
 	</section>
@@ -123,6 +166,9 @@ import Footer from '../components/Footer.astro';
 	<!-- Get started -->
 	<section class="get-started" id="get-started">
 		<h2>Light it up</h2>
+		<p class="section-note" style="margin-top: 0; margin-bottom: 2rem;">
+			<strong>The short version is below.</strong> For the full walkthrough — creating the GitHub App with the right permissions, deploying to production with Caddy TLS, wiring up Slack chat + OAuth login, and every env var the harness reads — start with <a href="/docs/introduction">the docs</a>.
+		</p>
 
 		<div class="step-block">
 			<h3><span class="step-label">Step 1</span> Install Claude Code CLI</h3>
@@ -292,26 +338,43 @@ SLACK_DELIVERY_CHANNEL=C01XYZ        # channel for health reports</code></pre>
 		<p class="section-note">The weekly health report runs regardless of mode — it's useful either way.</p>
 	</section>
 
-	<!-- Admin Dashboard -->
+	<!-- Dashboard tour -->
 	<section class="admin-section">
-		<h2>Built-in admin dashboard</h2>
-		<p class="section-desc">Every agent session is logged and browsable. The dashboard at <code>/admin</code> shows live execution history, running containers, and full message streams — so you always know what the bot is doing and why.</p>
-		<div class="admin-screenshot">
-			<img src="/admin-dashboard.png" alt="Last Light admin dashboard showing session history and agent execution logs" />
-		</div>
-		<div class="admin-features">
-			<div class="admin-feature">
-				<strong>Session history</strong>
-				<p>Every agent invocation — triage, review, build cycle — logged with timing, phase, and outcome.</p>
-			</div>
-			<div class="admin-feature">
-				<strong>Live streaming</strong>
-				<p>Watch agent output in real-time via SSE. See tool calls, MCP interactions, and reasoning as it happens.</p>
-			</div>
-			<div class="admin-feature">
-				<strong>Execution stats</strong>
-				<p>Success rates, running containers, and execution database — all queryable from the API.</p>
-			</div>
+		<h2>Inside the dashboard</h2>
+		<p class="section-desc">Every agent session — sandbox runs, Slack chats, cron jobs, approval gates — is logged, browsable, and streamable. The dashboard at <code>/admin</code> has four tabs, each answering a different question about what the bot is doing.</p>
+
+		<div class="dashboard-tour">
+			<figure class="tour-card">
+				<img src="/screenshots/home.png" alt="Last Light dashboard home tab — live activity, execution stats, recent workflows, resource usage charts" loading="lazy" />
+				<figcaption>
+					<strong>Home</strong>
+					<span>Live activity, rolling execution / token / cost stats, running containers, and the five most recent workflow runs at a glance.</span>
+				</figcaption>
+			</figure>
+
+			<figure class="tour-card">
+				<img src="/screenshots/workflow.png" alt="Last Light Workflows tab showing a DAG pipeline with Guardrails, Architect, Executor, Reviewer, PR and complete phases" loading="lazy" />
+				<figcaption>
+					<strong>Workflows</strong>
+					<span>Pipeline DAG for every run — Guardrails → Architect → Executor → Reviewer → PR, with fix-feedback loops stacked under the reviewer phase. Click any phase to see its full message stream.</span>
+				</figcaption>
+			</figure>
+
+			<figure class="tour-card">
+				<img src="/screenshots/session.png" alt="Last Light Sandbox Sessions tab showing agent conversation timeline with assistant, tool, and user messages" loading="lazy" />
+				<figcaption>
+					<strong>Sandbox Sessions</strong>
+					<span>Drill into any Docker-sandboxed agent run. Full Agent SDK conversation — assistant thinking, tool calls, reviewer verdicts — filterable by skill, repo, and time range.</span>
+				</figcaption>
+			</figure>
+
+			<figure class="tour-card">
+				<img src="/screenshots/chat.png" alt="Last Light Chat Sessions tab showing a Slack thread's full message history" loading="lazy" />
+				<figcaption>
+					<strong>Chat Sessions</strong>
+					<span>DB-backed history for every Slack thread. The bot resumes the same Agent SDK session each turn, so one thread = one growing, coherent conversation.</span>
+				</figcaption>
+			</figure>
 		</div>
 	</section>
 
@@ -404,7 +467,7 @@ SLACK_DELIVERY_CHANNEL=C01XYZ        # channel for health reports</code></pre>
 		justify-content: space-between;
 		align-items: center;
 		padding: 1.25rem 2rem;
-		max-width: 1100px;
+		max-width: 1200px;
 		margin: 0 auto;
 	}
 
@@ -905,46 +968,52 @@ SLACK_DELIVERY_CHANNEL=C01XYZ        # channel for health reports</code></pre>
 		color: var(--gold);
 	}
 
-	/* Admin dashboard */
+	/* Admin dashboard tour */
 	.admin-section {
 		border-top: 1px solid var(--border);
 	}
 
-	.admin-screenshot {
-		margin: 1.5rem 0;
-		border-radius: 12px;
-		overflow: hidden;
-		border: 1px solid var(--border);
+	.dashboard-tour {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1.25rem;
+		margin-top: 1.5rem;
 	}
 
-	.admin-screenshot img {
+	.tour-card {
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		overflow: hidden;
+		transition: border-color 0.25s, transform 0.25s;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.tour-card:hover {
+		border-color: var(--teal);
+		transform: translateY(-2px);
+	}
+
+	.tour-card img {
 		width: 100%;
 		height: auto;
 		display: block;
+		border-bottom: 1px solid var(--border);
 	}
 
-	.admin-features {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 1rem;
-		margin-top: 1rem;
+	.tour-card figcaption {
+		padding: 1rem 1.25rem 1.15rem;
 	}
 
-	.admin-feature {
-		background: var(--bg-card);
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		padding: 1.25rem;
-	}
-
-	.admin-feature strong {
+	.tour-card figcaption strong {
 		display: block;
 		color: var(--text-bright);
-		font-size: 0.9rem;
+		font-size: 0.95rem;
 		margin-bottom: 0.3rem;
 	}
 
-	.admin-feature p {
+	.tour-card figcaption span {
 		font-size: 0.82rem;
 		color: var(--text-muted);
 		line-height: 1.55;
@@ -958,7 +1027,7 @@ SLACK_DELIVERY_CHANNEL=C01XYZ        # channel for health reports</code></pre>
 	}
 
 	.footer-content {
-		max-width: 1000px;
+		max-width: 1200px;
 		margin: 0 auto;
 		display: flex;
 		align-items: center;
@@ -1019,7 +1088,7 @@ SLACK_DELIVERY_CHANNEL=C01XYZ        # channel for health reports</code></pre>
 			grid-template-columns: 1fr;
 		}
 
-		.admin-features {
+		.dashboard-tour {
 			grid-template-columns: 1fr;
 		}
 

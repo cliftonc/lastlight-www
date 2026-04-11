@@ -1,0 +1,71 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+<DocsLayout
+	slug="introduction"
+	description="What Last Light is, what it does, and when to use it."
+>
+	<p>
+		Last Light is an open-source GitHub repository maintenance agent. It sits in front of
+		one or more repositories, listens for events, and runs an AI agent against them to
+		triage issues, review pull requests, respond to comments, and — when you ask — build
+		features end-to-end through an Architect → Executor → Reviewer cycle.
+	</p>
+
+	<p>
+		It is built on the <a href="https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sdk" target="_blank" rel="noopener">Claude Agent SDK</a>
+		with a lightweight TypeScript harness that handles webhook ingestion, Slack
+		messaging, cron scheduling, sandbox isolation, and an admin dashboard. Every piece
+		of non-trivial behavior is expressed as a <strong>YAML workflow</strong> — the harness
+		itself knows nothing about "build" or "triage" specifically; it just executes the
+		phases a workflow declares.
+	</p>
+
+	<h2>What it does out of the box</h2>
+
+	<ul>
+		<li><strong>Triages new issues</strong> — labels, deduplicates, chases missing info.</li>
+		<li><strong>Reviews pull requests</strong> — posts severity-ranked feedback with file:line references.</li>
+		<li><strong>Builds features on request</strong> — Architect plans, Executor implements, Reviewer verifies, fix-feedback loops, PR opened.</li>
+		<li><strong>Writes weekly health reports</strong> — open/stale issues, PR velocity, action items.</li>
+		<li><strong>Talks to you on Slack</strong> — per-thread conversation, DB-backed session history.</li>
+		<li><strong>Gives you a dashboard</strong> — live activity, pipeline DAGs, full session drill-down.</li>
+	</ul>
+
+	<h2>Who it's for</h2>
+
+	<p>
+		Last Light is aimed at maintainers of repos that have moved into <em>maintenance
+		mode</em> — libraries, side projects, and internal tools that still matter but aren't
+		getting daily attention. It keeps the lights on after you've moved on.
+	</p>
+
+	<p>
+		It runs as a single container you deploy somewhere you control. There is no SaaS —
+		you own the webhook endpoint, the Docker volume, and the audit trail.
+	</p>
+
+	<h2>How this documentation is organized</h2>
+
+	<ul>
+		<li><strong>Getting Started</strong> walks you through prerequisites, creating a GitHub App, running locally, deploying to production, and wiring up Slack.</li>
+		<li><strong>Reference</strong> documents every environment variable the harness reads.</li>
+	</ul>
+
+	<div class="docs-callout tip">
+		<div class="docs-callout-body">
+			<strong>Want the architecture story first?</strong> Read
+			<a href="/how-it-works">How it works</a> for the narrative on EventEnvelope,
+			the YAML workflow engine, phases, execution modes, permission profiles, and
+			approval gates.
+		</div>
+	</div>
+
+	<div class="docs-next">
+		<span></span>
+		<a href="/docs/prerequisites" class="next">
+			<span class="label">Next →</span>
+			<span class="title">Prerequisites</span>
+		</a>
+	</div>
+</DocsLayout>

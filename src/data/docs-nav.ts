@@ -1,0 +1,38 @@
+export interface DocsNavItem {
+	slug: string;
+	label: string;
+}
+
+export interface DocsNavSection {
+	title: string;
+	items: DocsNavItem[];
+}
+
+export const docsNav: DocsNavSection[] = [
+	{
+		title: 'Getting Started',
+		items: [
+			{ slug: 'introduction', label: 'Introduction' },
+			{ slug: 'prerequisites', label: 'Prerequisites' },
+			{ slug: 'github-app', label: 'Create a GitHub App' },
+			{ slug: 'local-dev', label: 'Run it locally' },
+			{ slug: 'production', label: 'Production deploy' },
+			{ slug: 'slack', label: 'Slack integration' },
+		],
+	},
+	{
+		title: 'Reference',
+		items: [
+			{ slug: 'configuration', label: 'Configuration' },
+		],
+	},
+];
+
+export function findDocTitle(slug: string): string {
+	for (const section of docsNav) {
+		for (const item of section.items) {
+			if (item.slug === slug) return item.label;
+		}
+	}
+	return slug;
+}

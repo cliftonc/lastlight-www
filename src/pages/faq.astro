@@ -9,8 +9,29 @@ import Footer from '../components/Footer.astro';
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<link rel="icon" type="image/png" href="/logo.png" />
+	<link rel="canonical" href="https://lastlight.dev/faq" />
+	<link rel="sitemap" href="/sitemap-index.xml" />
 	<title>FAQ — Last Light</title>
-	<meta name="description" content="Frequently asked questions about Last Light — the open-source GitHub maintenance agent." />
+	<meta name="description" content="Frequently asked questions about Last Light — the open-source GitHub maintenance agent. Setup, architecture, customization, operations." />
+
+	<!-- Open Graph -->
+	<meta property="og:type" content="article" />
+	<meta property="og:site_name" content="Last Light" />
+	<meta property="og:title" content="FAQ — Last Light" />
+	<meta property="og:description" content="Frequently asked questions about Last Light — the open-source GitHub maintenance agent. Setup, architecture, customization, operations." />
+	<meta property="og:url" content="https://lastlight.dev/faq" />
+	<meta property="og:image" content="https://lastlight.dev/logo-512.png" />
+	<meta property="og:image:width" content="512" />
+	<meta property="og:image:height" content="512" />
+	<meta property="og:image:alt" content="Last Light logo" />
+
+	<!-- Twitter -->
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content="FAQ — Last Light" />
+	<meta name="twitter:description" content="Frequently asked questions about Last Light — the open-source GitHub maintenance agent. Setup, architecture, customization, operations." />
+	<meta name="twitter:image" content="https://lastlight.dev/logo-512.png" />
+	<meta name="twitter:image:alt" content="Last Light logo" />
+
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -92,6 +113,32 @@ import Footer from '../components/Footer.astro';
 					<p>It does nothing. Silence is built into the design — the agent only acts on events it has explicit rules for. Unknown event types, ambiguous requests, and bot-generated events are all ignored. For build requests, if it can't push code, it posts a detailed comment explaining what it tried and what needs human attention.</p>
 				</div>
 			</details>
+
+			<details class="faq-item">
+				<summary>What's the difference between Sandbox Sessions and Chat Sessions?</summary>
+				<div class="faq-answer">
+					<p><strong>Sandbox sessions</strong> are agent runs that executed inside a Docker sandbox — triage, PR review, build, health report, anything driven by a YAML workflow. They are stored as Agent SDK JSONL files on disk and listed on the dashboard's <em>Sandbox Sessions</em> tab.</p>
+					<p><strong>Chat sessions</strong> are conversations from Slack threads. They run the in-process <code>chat</code> skill (not sandboxed) so replies are low-latency, and the harness <strong>resumes the same Agent SDK session</strong> on every turn of a given Slack thread. Every turn is persisted to SQLite (<code>executions</code> table) and one thread becomes one growing, coherent JSONL. They live on the dashboard's <em>Chat Sessions</em> tab.</p>
+					<p>In short: sandbox sessions are one-shot workflow runs; chat sessions are multi-turn conversations glued to a Slack thread.</p>
+				</div>
+			</details>
+
+			<details class="faq-item">
+				<summary>How do approval gates work?</summary>
+				<div class="faq-answer">
+					<p>A workflow phase can declare <code>approval_gate: post_architect</code> (or any other gate name). If that gate is enabled via the <code>APPROVAL_GATES</code> env var, the runner pauses after that phase, persists the run state, writes a row to the <code>workflow_approvals</code> table, and waits for a human decision.</p>
+					<p>You resolve gates three ways: commenting <code>@last-light approve</code> or <code>@last-light reject</code> on the triggering GitHub issue; running <code>/approve</code> / <code>/reject</code> from Slack; or clicking the button on the dashboard. The run resumes exactly where it stopped — no phases re-execute.</p>
+					<p>Because gates are opt-in per environment, you can ship workflows with gates pre-declared and enable them only in production.</p>
+				</div>
+			</details>
+
+			<details class="faq-item">
+				<summary>How do permission profiles downscope the GitHub token?</summary>
+				<div class="faq-answer">
+					<p>The GitHub App itself has broad permissions (contents read/write, issues read/write, PRs read/write). But every workflow declares a <code>profile</code> — one of <code>read</code>, <code>issues-write</code>, <code>review-write</code>, or <code>repo-write</code>. Before spawning a sandbox, the harness mints an installation token that only has the scopes that profile needs.</p>
+					<p>The practical effect: a triage run literally cannot push code, a review run cannot open issues, etc. Even if a prompt got compromised, the token handed into the sandbox doesn't have the write permission in the first place.</p>
+				</div>
+			</details>
 		</div>
 
 		<div class="faq-category">
@@ -100,13 +147,8 @@ import Footer from '../components/Footer.astro';
 			<details class="faq-item">
 				<summary>How do I change what the bot does?</summary>
 				<div class="faq-answer">
-					<p>Edit the skill files in <code>skills/</code>. Each skill is a Markdown file with instructions the agent follows. For example:</p>
-					<ul>
-						<li><code>skills/github-orchestrator/SKILL.md</code> — coordinates GitHub events, build requests, and the Architect→Executor→Reviewer cycle</li>
-						<li><code>skills/github/github-pr-workflow/SKILL.md</code> — PR lifecycle (branch, commit, push, merge)</li>
-						<li><code>skills/github/github-auth/SKILL.md</code> — authentication setup</li>
-					</ul>
-					<p>Skills are plain text — no code to write. Change the instructions and the agent changes its behavior.</p>
+					<p>Edit the YAML in <code>workflows/</code>. Every behavior is a workflow — <code>build.yaml</code>, <code>issue-triage.yaml</code>, <code>pr-review.yaml</code>, <code>cron-health.yaml</code>, etc. A workflow is a list of phases; each phase runs an agent with either an inline prompt (<code>prompt: prompts/architect.md</code>) or a named skill (<code>skill: assure-guardrails</code>).</p>
+					<p>To change an existing behavior, edit its workflow file or its referenced prompt under <code>workflows/prompts/</code> or its <code>SKILL.md</code> under <code>skills/</code>. To add a new behavior, drop a new YAML file into <code>workflows/</code> — the harness picks it up automatically. No TypeScript needed.</p>
 				</div>
 			</details>
 
@@ -207,7 +249,7 @@ import Footer from '../components/Footer.astro';
 		justify-content: space-between;
 		align-items: center;
 		padding: 1.25rem 2rem;
-		max-width: 1100px;
+		max-width: 1200px;
 		margin: 0 auto;
 	}
 
@@ -380,7 +422,7 @@ import Footer from '../components/Footer.astro';
 	}
 
 	.footer-content {
-		max-width: 1000px;
+		max-width: 1200px;
 		margin: 0 auto;
 		display: flex;
 		align-items: center;

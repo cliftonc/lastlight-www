@@ -1,0 +1,307 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+<DocsLayout
+	slug="configuration"
+	description="Every environment variable Last Light reads — required and optional, with defaults."
+>
+	<p>
+		Last Light reads configuration from environment variables (via <code>.env</code>
+		in local dev, or <code>secrets/.env</code> in production). The authoritative source
+		is <code>src/config.ts</code> in the repo; this page mirrors it.
+	</p>
+
+	<h2>GitHub App</h2>
+
+	<p>Required if you want to manage repos (not required for messaging-only mode).</p>
+
+	<table class="docs-table config-table">
+		<colgroup>
+			<col class="col-var" />
+			<col class="col-req" />
+			<col class="col-default" />
+			<col class="col-desc" />
+		</colgroup>
+		<thead>
+			<tr><th>Variable</th><th>Required</th><th>Default</th><th>Description</th></tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>GITHUB_APP_ID</code></td>
+				<td>Yes</td>
+				<td>—</td>
+				<td>Numeric GitHub App ID from the app settings page.</td>
+			</tr>
+			<tr>
+				<td><code>GITHUB_APP_PRIVATE_KEY_PATH</code></td>
+				<td>Yes</td>
+				<td>—</td>
+				<td>Path to the <code>.pem</code> file you downloaded when creating the app.</td>
+			</tr>
+			<tr>
+				<td><code>GITHUB_APP_INSTALLATION_ID</code></td>
+				<td>Yes</td>
+				<td>—</td>
+				<td>Installation ID — from the URL after installing the app on a repo.</td>
+			</tr>
+			<tr>
+				<td><code>WEBHOOK_SECRET</code></td>
+				<td>Yes</td>
+				<td>—</td>
+				<td>Matches the webhook secret configured in your GitHub App. Used to verify webhook signatures.</td>
+			</tr>
+			<tr>
+				<td><code>BOT_LOGIN</code></td>
+				<td>No</td>
+				<td><code>last-light[bot]</code></td>
+				<td>Bot login used to filter out the harness's own events from its own event stream.</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<h2>Claude / models</h2>
+
+	<table class="docs-table config-table">
+		<colgroup>
+			<col class="col-var" />
+			<col class="col-req" />
+			<col class="col-default" />
+			<col class="col-desc" />
+		</colgroup>
+		<thead>
+			<tr><th>Variable</th><th>Required</th><th>Default</th><th>Description</th></tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>ANTHROPIC_API_KEY</code></td>
+				<td>No</td>
+				<td>—</td>
+				<td>API key. If unset, the harness relies on <code>claude login</code> (subscription auth).</td>
+			</tr>
+			<tr>
+				<td><code>CLAUDE_MODEL</code></td>
+				<td>No</td>
+				<td><code>claude-sonnet-4-6</code></td>
+				<td>Default model used when no per-task override matches.</td>
+			</tr>
+			<tr>
+				<td><code>CLAUDE_MODELS</code></td>
+				<td>No</td>
+				<td>—</td>
+				<td>Per-task-type model overrides as JSON. Keys match phase names; use <code>default</code> as the catch-all. Do not override <code>chat</code> — Haiku tends to refuse MCP tool calls. Example: <code>&#123;"architect":"claude-opus-4-6","triage":"claude-haiku-4-5-20251001"&#125;</code></td>
+			</tr>
+			<tr>
+				<td><code>MAX_TURNS</code></td>
+				<td>No</td>
+				<td><code>200</code></td>
+				<td>Maximum agent turns per invocation.</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<h2>Runtime</h2>
+
+	<table class="docs-table config-table">
+		<colgroup>
+			<col class="col-var" />
+			<col class="col-req" />
+			<col class="col-default" />
+			<col class="col-desc" />
+		</colgroup>
+		<thead>
+			<tr><th>Variable</th><th>Required</th><th>Default</th><th>Description</th></tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>PORT</code> / <code>WEBHOOK_PORT</code></td>
+				<td>No</td>
+				<td><code>8644</code></td>
+				<td>Port the webhook listener binds to.</td>
+			</tr>
+			<tr>
+				<td><code>STATE_DIR</code></td>
+				<td>No</td>
+				<td><code>./data</code></td>
+				<td>Base directory for persistent state (DB, sessions, sandboxes, logs). Mount as a Docker volume in production.</td>
+			</tr>
+			<tr>
+				<td><code>DB_PATH</code></td>
+				<td>No</td>
+				<td><code>$STATE_DIR/lastlight.db</code></td>
+				<td>Override the SQLite database path.</td>
+			</tr>
+			<tr>
+				<td><code>WORKFLOW_DIR</code></td>
+				<td>No</td>
+				<td><code>./workflows</code></td>
+				<td>Directory containing YAML workflow definitions.</td>
+			</tr>
+			<tr>
+				<td><code>CLAUDE_HOME_DIR</code></td>
+				<td>No</td>
+				<td><code>$STATE_DIR/claude-home</code></td>
+				<td>Directory the dashboard reads sandbox session JSONLs from. Local dev points this at <code>./data/sandbox-claude-home</code>.</td>
+			</tr>
+			<tr>
+				<td><code>MCP_CONFIG_PATH</code></td>
+				<td>No</td>
+				<td><code>./mcp-config.json</code></td>
+				<td>Path for the generated MCP config file.</td>
+			</tr>
+			<tr>
+				<td><code>SANDBOX_DATA_VOLUME</code></td>
+				<td>No</td>
+				<td><code>lastlight_agent-data</code></td>
+				<td>Either a Docker named volume or a host path (starts with <code>/</code>, <code>./</code>, <code>../</code>, <code>~</code>) bind-mounted as <code>/data</code> in each sandbox.</td>
+			</tr>
+			<tr>
+				<td><code>ENABLE_DIRECT_FALLBACK</code></td>
+				<td>No</td>
+				<td>false (in local dev)</td>
+				<td>If <code>true</code>, the harness falls back to in-process agent execution when the sandbox image is unavailable. Keep this off in production.</td>
+			</tr>
+			<tr>
+				<td><code>LASTLIGHT_LOCAL_DEV</code></td>
+				<td>No</td>
+				<td>—</td>
+				<td>Set to <code>1</code> to prevent <code>git-auth.ts</code> from writing to <code>~/.gitconfig</code>. Used by <code>scripts/dev-local.sh</code>.</td>
+			</tr>
+			<tr>
+				<td><code>BOOTSTRAP_LABEL</code></td>
+				<td>No</td>
+				<td><code>lastlight:bootstrap</code></td>
+				<td>Label applied to issues that exist solely to set up missing guardrails in a target repo.</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<h2>Approval gates</h2>
+
+	<table class="docs-table config-table">
+		<colgroup>
+			<col class="col-var" />
+			<col class="col-req" />
+			<col class="col-default" />
+			<col class="col-desc" />
+		</colgroup>
+		<thead>
+			<tr><th>Variable</th><th>Required</th><th>Default</th><th>Description</th></tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>APPROVAL_GATES</code></td>
+				<td>No</td>
+				<td>—</td>
+				<td>
+					Comma-separated list of gate names to enable. Gate names match
+					<code>approval_gate:</code> fields declared in workflow YAML (e.g.
+					<code>post_architect</code>, <code>post_reviewer</code>). A gate only
+					pauses the run if its name appears here, so you can ship workflows with
+					gates pre-declared and enable them per environment.
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<h2>Admin dashboard</h2>
+
+	<table class="docs-table config-table">
+		<colgroup>
+			<col class="col-var" />
+			<col class="col-req" />
+			<col class="col-default" />
+			<col class="col-desc" />
+		</colgroup>
+		<thead>
+			<tr><th>Variable</th><th>Required</th><th>Default</th><th>Description</th></tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>ADMIN_PASSWORD</code></td>
+				<td>No</td>
+				<td>—</td>
+				<td>If set, the dashboard requires password login.</td>
+			</tr>
+			<tr>
+				<td><code>ADMIN_SECRET</code></td>
+				<td>No</td>
+				<td>random</td>
+				<td>HMAC secret used to sign session tokens. Set this to a stable value in production so sessions survive restarts.</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<h2>Slack (optional)</h2>
+
+	<p>Two independent feature groups — see <a href="/docs/slack">Slack integration</a> for setup.</p>
+
+	<table class="docs-table config-table">
+		<colgroup>
+			<col class="col-var" />
+			<col class="col-req" />
+			<col class="col-default" />
+			<col class="col-desc" />
+		</colgroup>
+		<thead>
+			<tr><th>Variable</th><th>Required</th><th>Default</th><th>Description</th></tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>SLACK_BOT_TOKEN</code></td>
+				<td>No</td>
+				<td>—</td>
+				<td>Bot User OAuth Token (<code>xoxb-...</code>). Presence of this var enables the Slack connector.</td>
+			</tr>
+			<tr>
+				<td><code>SLACK_APP_TOKEN</code></td>
+				<td>Yes (if bot token set)</td>
+				<td>—</td>
+				<td>App-Level Token (<code>xapp-...</code>) for Socket Mode.</td>
+			</tr>
+			<tr>
+				<td><code>SLACK_ALLOWED_USERS</code></td>
+				<td>No</td>
+				<td>—</td>
+				<td>Comma-separated Slack user IDs allowed to interact with the bot.</td>
+			</tr>
+			<tr>
+				<td><code>SLACK_DELIVERY_CHANNEL</code></td>
+				<td>No</td>
+				<td>—</td>
+				<td>Channel ID where cron health reports are posted.</td>
+			</tr>
+			<tr>
+				<td><code>SLACK_OAUTH_CLIENT_ID</code></td>
+				<td>No</td>
+				<td>—</td>
+				<td>Enables "Login with Slack" on the dashboard.</td>
+			</tr>
+			<tr>
+				<td><code>SLACK_OAUTH_CLIENT_SECRET</code></td>
+				<td>Yes (if client id set)</td>
+				<td>—</td>
+				<td>OAuth client secret.</td>
+			</tr>
+			<tr>
+				<td><code>SLACK_OAUTH_REDIRECT_URI</code></td>
+				<td>Yes (if client id set)</td>
+				<td>—</td>
+				<td>Must exactly match a redirect URL configured on the Slack app, typically <code>https://your-host/admin/api/oauth/slack/callback</code>.</td>
+			</tr>
+			<tr>
+				<td><code>SLACK_ALLOWED_WORKSPACE</code></td>
+				<td>No</td>
+				<td>—</td>
+				<td>Restrict OAuth login to a single Slack workspace (team ID or domain).</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<div class="docs-next">
+		<a href="/docs/slack">
+			<span class="label">← Previous</span>
+			<span class="title">Slack integration</span>
+		</a>
+		<span></span>
+	</div>
+</DocsLayout>

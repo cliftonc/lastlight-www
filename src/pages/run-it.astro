@@ -9,8 +9,29 @@ import Footer from '../components/Footer.astro';
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<link rel="icon" type="image/png" href="/logo.png" />
+	<link rel="canonical" href="https://lastlight.dev/run-it" />
+	<link rel="sitemap" href="/sitemap-index.xml" />
 	<title>Run It for Real — Last Light</title>
-	<meta name="description" content="Deploy Last Light for real — fork, configure, docker compose up. Production-ready with automatic TLS." />
+	<meta name="description" content="Deploy Last Light for real — fork, configure, docker compose up. Production-ready with automatic TLS via Caddy." />
+
+	<!-- Open Graph -->
+	<meta property="og:type" content="article" />
+	<meta property="og:site_name" content="Last Light" />
+	<meta property="og:title" content="Run It for Real — Last Light" />
+	<meta property="og:description" content="Deploy Last Light for real — fork, configure, docker compose up. Production-ready with automatic TLS via Caddy." />
+	<meta property="og:url" content="https://lastlight.dev/run-it" />
+	<meta property="og:image" content="https://lastlight.dev/logo-512.png" />
+	<meta property="og:image:width" content="512" />
+	<meta property="og:image:height" content="512" />
+	<meta property="og:image:alt" content="Last Light logo" />
+
+	<!-- Twitter -->
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content="Run It for Real — Last Light" />
+	<meta name="twitter:description" content="Deploy Last Light for real — fork, configure, docker compose up. Production-ready with automatic TLS via Caddy." />
+	<meta name="twitter:image" content="https://lastlight.dev/logo-512.png" />
+	<meta name="twitter:image:alt" content="Last Light logo" />
+
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -22,6 +43,9 @@ import Footer from '../components/Footer.astro';
 	<section class="page-header">
 		<h1>Run it <span class="accent">for real</span></h1>
 		<p class="subtitle">Fork the repo, drop in your secrets, <code>docker compose up</code>. Caddy handles TLS automatically.</p>
+		<p class="subtitle" style="font-size: 0.95rem; margin-top: 1rem;">
+			For the authoritative step-by-step — including every optional env var, Slack OAuth login, approval gates, and the dashboard password — read <a href="/docs/production">Production deploy</a> in the docs.
+		</p>
 	</section>
 
 	<section class="security-advisory">
@@ -59,8 +83,13 @@ cp ~/path-to/your-app.private-key.pem secrets/</code></pre>
 			<li><strong>Webhook secret</strong> — must match your GitHub App's webhook settings</li>
 			<li><strong>Domain</strong> — your public hostname for automatic TLS (or <code>localhost</code> for dev)</li>
 			<li><strong>Anthropic API key</strong> — for Claude API access (or use <code>claude login</code> for subscription-based auth)</li>
-			<li><strong>Slack tokens</strong> (optional) — <code>SLACK_BOT_TOKEN</code> and <code>SLACK_APP_TOKEN</code> for Slack integration</li>
+			<li><strong>Model overrides</strong> (optional) — <code>CLAUDE_MODELS</code> as JSON to route architect/executor/reviewer phases to different models</li>
+			<li><strong>Approval gates</strong> (optional) — <code>APPROVAL_GATES=post_architect,post_reviewer</code> to pause at human-in-the-loop checkpoints</li>
+			<li><strong>Admin dashboard</strong> (recommended) — <code>ADMIN_PASSWORD</code> and a stable <code>ADMIN_SECRET</code> for persistent login sessions</li>
+			<li><strong>Slack chat</strong> (optional) — <code>SLACK_BOT_TOKEN</code> and <code>SLACK_APP_TOKEN</code> for the in-process chat skill (Socket Mode)</li>
+			<li><strong>Slack OAuth login</strong> (optional) — <code>SLACK_OAUTH_CLIENT_ID</code>, <code>SLACK_OAUTH_CLIENT_SECRET</code>, <code>SLACK_OAUTH_REDIRECT_URI</code>, and optionally <code>SLACK_ALLOWED_WORKSPACE</code> to restrict login to one team</li>
 		</ul>
+		<p class="step-detail">See the <a href="/docs/configuration">Configuration reference</a> for every variable the harness reads, with defaults and descriptions.</p>
 		</div>
 
 		<div class="step-block">
@@ -290,7 +319,7 @@ docker compose up -d agent</code></pre>
 		justify-content: space-between;
 		align-items: center;
 		padding: 1.25rem 2rem;
-		max-width: 1100px;
+		max-width: 1200px;
 		margin: 0 auto;
 	}
 
@@ -608,7 +637,7 @@ docker compose up -d agent</code></pre>
 	}
 
 	.footer-content {
-		max-width: 1000px;
+		max-width: 1200px;
 		margin: 0 auto;
 		display: flex;
 		align-items: center;
