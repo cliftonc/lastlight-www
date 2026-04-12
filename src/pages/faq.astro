@@ -1,44 +1,12 @@
 ---
 // Last Light — FAQ
-import Nav from '../components/Nav.astro';
-import Footer from '../components/Footer.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const title = "FAQ — Last Light";
+const description = "Frequently asked questions about Last Light — the open-source GitHub maintenance agent. Setup, architecture, customization, operations.";
 ---
 
-<html lang="en">
-<head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<link rel="icon" type="image/png" href="/logo.png" />
-	<link rel="canonical" href="https://lastlight.dev/faq" />
-	<link rel="sitemap" href="/sitemap-index.xml" />
-	<title>FAQ — Last Light</title>
-	<meta name="description" content="Frequently asked questions about Last Light — the open-source GitHub maintenance agent. Setup, architecture, customization, operations." />
-
-	<!-- Open Graph -->
-	<meta property="og:type" content="article" />
-	<meta property="og:site_name" content="Last Light" />
-	<meta property="og:title" content="FAQ — Last Light" />
-	<meta property="og:description" content="Frequently asked questions about Last Light — the open-source GitHub maintenance agent. Setup, architecture, customization, operations." />
-	<meta property="og:url" content="https://lastlight.dev/faq" />
-	<meta property="og:image" content="https://lastlight.dev/logo-512.png" />
-	<meta property="og:image:width" content="512" />
-	<meta property="og:image:height" content="512" />
-	<meta property="og:image:alt" content="Last Light logo" />
-
-	<!-- Twitter -->
-	<meta name="twitter:card" content="summary" />
-	<meta name="twitter:title" content="FAQ — Last Light" />
-	<meta name="twitter:description" content="Frequently asked questions about Last Light — the open-source GitHub maintenance agent. Setup, architecture, customization, operations." />
-	<meta name="twitter:image" content="https://lastlight.dev/logo-512.png" />
-	<meta name="twitter:image:alt" content="Last Light logo" />
-
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-</head>
-<body>
-
-	<Nav />
+<BaseLayout title={title} description={description}>
 
 	<section class="page-header">
 		<h1>Frequently asked <span class="accent">questions</span></h1>
@@ -197,102 +165,9 @@ import Footer from '../components/Footer.astro';
 
 	</section>
 
-	<Footer />
-
-</body>
-</html>
+</BaseLayout>
 
 <style is:global>
-	:root {
-		--gold: #F0B429;
-		--orange: #E8752A;
-		--teal: #1A7A8A;
-		--teal-dark: #135E6B;
-		--navy: #1B2735;
-		--bg: #0C1117;
-		--bg-card: #141B24;
-		--bg-card-hover: #1A2332;
-		--border: #1E2A38;
-		--text: #C9D1D9;
-		--text-muted: #7D8694;
-		--text-bright: #ECEFF4;
-		--mono: 'JetBrains Mono', monospace;
-		--sans: 'Inter', -apple-system, sans-serif;
-	}
-
-	* { margin: 0; padding: 0; box-sizing: border-box; }
-	html { scroll-behavior: smooth; }
-
-	body {
-		background: var(--bg);
-		color: var(--text);
-		font-family: var(--sans);
-		line-height: 1.6;
-		-webkit-font-smoothing: antialiased;
-	}
-
-	a { color: var(--gold); text-decoration: none; transition: color 0.2s; }
-	a:hover { color: var(--orange); }
-	h1, h2, h3 { color: var(--text-bright); font-weight: 600; }
-
-	code {
-		font-family: var(--mono);
-		font-size: 0.85em;
-		background: var(--navy);
-		padding: 0.15em 0.4em;
-		border-radius: 4px;
-		color: var(--gold);
-	}
-
-	nav {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 1.25rem 2rem;
-		max-width: 1200px;
-		margin: 0 auto;
-	}
-
-	.nav-logo {
-		display: flex;
-		align-items: center;
-		gap: 0.6rem;
-		font-weight: 600;
-		color: var(--text-bright);
-		font-size: 1rem;
-	}
-
-	.nav-logo:hover { color: var(--gold); }
-
-	.nav-links {
-		display: flex;
-		align-items: center;
-		gap: 1.25rem;
-	}
-
-	.nav-links a {
-		color: var(--text-muted);
-		font-size: 0.88rem;
-		font-weight: 500;
-		transition: color 0.2s;
-	}
-
-	.nav-links a:hover { color: var(--text-bright); }
-
-	.gh-link {
-		color: var(--text-muted);
-		display: flex;
-		align-items: center;
-		padding: 0.4rem;
-		border-radius: 6px;
-		transition: color 0.2s, background 0.2s;
-	}
-
-	.gh-link:hover {
-		color: var(--text-bright);
-		background: var(--bg-card);
-	}
-
 	section {
 		max-width: 1000px;
 		margin: 0 auto;
@@ -412,55 +287,5 @@ import Footer from '../components/Footer.astro';
 		color: var(--text-muted);
 		line-height: 1.65;
 		margin-bottom: 0.3rem;
-	}
-
-	/* Footer */
-	footer {
-		border-top: 1px solid var(--border);
-		padding: 2rem;
-		margin-top: 2rem;
-	}
-
-	.footer-content {
-		max-width: 1200px;
-		margin: 0 auto;
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		flex-wrap: wrap;
-	}
-
-	.footer-links {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		font-size: 0.82rem;
-	}
-
-	.footer-links a {
-		color: var(--text-muted);
-		transition: color 0.2s;
-	}
-
-	.footer-links a:hover {
-		color: var(--gold);
-	}
-
-	.footer-sep {
-		color: var(--border);
-		font-size: 0.75rem;
-	}
-
-	.footer-meta {
-		font-size: 0.78rem;
-		color: var(--text-muted);
-		margin-left: auto;
-	}
-
-	@media (max-width: 640px) {
-		.nav-links { gap: 0.75rem; }
-		.nav-links a { font-size: 0.8rem; }
-		.footer-content { flex-direction: column; align-items: flex-start; }
-		.footer-meta { margin-left: 0; }
 	}
 </style>

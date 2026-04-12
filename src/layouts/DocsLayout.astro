@@ -15,7 +15,11 @@ const pageDescription = description ?? `${title} — Last Light documentation.`;
 <BaseLayout title={pageTitle} description={pageDescription}>
 	<div class="docs-shell">
 		<aside class="docs-sidebar">
-			<nav class="docs-nav" aria-label="Documentation">
+			<button type="button" class="docs-sidebar-toggle" aria-expanded="false" aria-controls="docs-nav-list">
+				<span class="docs-sidebar-toggle-label">Documentation menu</span>
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+			</button>
+			<nav id="docs-nav-list" class="docs-nav" aria-label="Documentation">
 				{docsNav.map((section) => (
 					<div class="docs-nav-section">
 						<p class="docs-nav-title">{section.title}</p>
@@ -45,6 +49,18 @@ const pageDescription = description ?? `${title} — Last Light documentation.`;
 			</article>
 		</main>
 	</div>
+
+	<script>
+		const toggle = document.querySelector<HTMLButtonElement>(".docs-sidebar-toggle");
+		const list = document.getElementById("docs-nav-list");
+		if (toggle && list) {
+			toggle.addEventListener("click", () => {
+				const open = toggle.getAttribute("aria-expanded") === "true";
+				toggle.setAttribute("aria-expanded", String(!open));
+				list.classList.toggle("open", !open);
+			});
+		}
+	</script>
 </BaseLayout>
 
 <style is:global>
@@ -64,6 +80,37 @@ const pageDescription = description ?? `${title} — Last Light documentation.`;
 		max-height: calc(100vh - 3rem);
 		overflow-y: auto;
 		padding-right: 0.5rem;
+	}
+
+	.docs-sidebar-toggle {
+		display: none;
+		width: 100%;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.7rem 0.9rem;
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		color: var(--text-bright);
+		font-family: inherit;
+		font-size: 0.88rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: border-color 0.2s, background 0.2s;
+	}
+
+	.docs-sidebar-toggle:hover {
+		border-color: var(--teal);
+		background: var(--bg-card-hover);
+	}
+
+	.docs-sidebar-toggle svg {
+		transition: transform 0.2s;
+		color: var(--text-muted);
+	}
+
+	.docs-sidebar-toggle[aria-expanded="true"] svg {
+		transform: rotate(180deg);
 	}
 
 	/* Override the global top-nav `nav { display: flex; ... }` from BaseLayout */
@@ -349,15 +396,30 @@ const pageDescription = description ?? `${title} — Last Light documentation.`;
 	@media (max-width: 860px) {
 		.docs-shell {
 			grid-template-columns: 1fr;
-			gap: 1.5rem;
+			gap: 1rem;
 			padding: 1rem 1.25rem 3rem;
 		}
 		.docs-sidebar {
 			position: static;
 			max-height: none;
 			overflow-y: visible;
-			border-bottom: 1px solid var(--border);
-			padding-bottom: 1rem;
+			padding-right: 0;
+			padding-bottom: 0;
+			border-bottom: none;
+		}
+		.docs-sidebar-toggle {
+			display: flex;
+		}
+		.docs-sidebar nav.docs-nav {
+			display: none;
+			margin-top: 0.65rem;
+			padding: 0.75rem 0.25rem;
+			border: 1px solid var(--border);
+			border-radius: 8px;
+			background: var(--bg-card);
+		}
+		.docs-sidebar nav.docs-nav.open {
+			display: block;
 		}
 	}
 </style>

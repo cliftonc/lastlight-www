@@ -2,7 +2,11 @@
 	<a href="/" class="nav-logo">
 		<img src="/logo.png" alt="" width="24" height="24" style="object-fit: contain;" /> Last Light
 	</a>
-	<div class="nav-links">
+	<button type="button" class="nav-toggle" aria-expanded="false" aria-controls="primary-nav-links" aria-label="Toggle menu">
+		<svg class="nav-toggle-open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+		<svg class="nav-toggle-close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+	</button>
+	<div class="nav-links" id="primary-nav-links">
 		<a href="/#features">Features</a>
 		<a href="/how-it-works">How It Works</a>
 		<a href="/docs/introduction">Docs</a>
@@ -13,3 +17,22 @@
 		</a>
 	</div>
 </nav>
+
+<script>
+	const toggle = document.querySelector<HTMLButtonElement>(".nav-toggle");
+	const links = document.getElementById("primary-nav-links");
+	if (toggle && links) {
+		toggle.addEventListener("click", () => {
+			const open = toggle.getAttribute("aria-expanded") === "true";
+			toggle.setAttribute("aria-expanded", String(!open));
+			links.classList.toggle("open", !open);
+		});
+		// Close the menu when a link is tapped (mobile), so hash nav still works.
+		links.querySelectorAll("a").forEach((a) => {
+			a.addEventListener("click", () => {
+				toggle.setAttribute("aria-expanded", "false");
+				links.classList.remove("open");
+			});
+		});
+	}
+</script>
