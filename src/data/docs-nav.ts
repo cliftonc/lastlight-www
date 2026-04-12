@@ -21,6 +21,19 @@ export const docsNav: DocsNavSection[] = [
 		],
 	},
 	{
+		title: 'Workflows',
+		items: [
+			{ slug: 'workflows/overview', label: 'Overview' },
+			{ slug: 'workflows/build', label: 'Build' },
+			{ slug: 'workflows/explore', label: 'Explore' },
+			{ slug: 'workflows/issue-triage', label: 'Issue triage' },
+			{ slug: 'workflows/issue-comment', label: 'Issue comment' },
+			{ slug: 'workflows/pr-review', label: 'PR review' },
+			{ slug: 'workflows/pr-fix', label: 'PR fix' },
+			{ slug: 'workflows/repo-health', label: 'Repo health' },
+		],
+	},
+	{
 		title: 'Reference',
 		items: [
 			{ slug: 'configuration', label: 'Configuration' },

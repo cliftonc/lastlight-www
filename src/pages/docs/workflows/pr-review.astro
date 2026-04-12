@@ -1,0 +1,80 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+<DocsLayout
+	slug="workflows/pr-review"
+	description="The PR review workflow — reads a pull request diff and posts structured feedback without modifying code."
+>
+	<p>
+		PR review is a single-phase, read-only workflow. It reads the diff for a
+		pull request, checks for bugs, style issues, missing tests, and security
+		concerns, then posts structured feedback as a PR comment with severity-ranked
+		findings and file:line references.
+	</p>
+
+	<div class="docs-callout tip">
+		<div class="docs-callout-body">
+			<strong>Permission profile:</strong> <code>review-write</code> — can read
+			the repo and post review comments, but cannot push code.
+		</div>
+	</div>
+
+	<h2>Pipeline</h2>
+
+	<div class="workflow-diagram">
+		<svg viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<rect x="30" y="12" width="140" height="56" rx="8" fill="#141B24" stroke="#2D3748" stroke-width="1.5"/>
+			<text x="100" y="37" text-anchor="middle" fill="#C9D1D9" font-size="11" font-family="Inter">Review</text>
+			<text x="100" y="52" text-anchor="middle" fill="#4A5568" font-size="8" font-family="JetBrains Mono">read-only feedback</text>
+		</svg>
+	</div>
+
+	<h2>What it checks</h2>
+
+	<ul>
+		<li>Implementation correctness against the PR description</li>
+		<li>Test coverage for changed code</li>
+		<li>Security vulnerabilities (OWASP top 10)</li>
+		<li>Code style and naming consistency</li>
+		<li>Error handling and edge cases</li>
+	</ul>
+
+	<h2>Triggers</h2>
+
+	<ul>
+		<li><strong>GitHub webhook:</strong> <code>pr.opened</code> event</li>
+		<li><strong>Cron fallback:</strong> Every 30 minutes (only when webhooks are not configured)</li>
+		<li><strong>Slack:</strong> <code>review cliftonc/repo</code></li>
+		<li><strong>CLI:</strong> <code>npm run cli -- review owner/repo</code></li>
+	</ul>
+
+	<div class="docs-next">
+		<a href="/docs/workflows/issue-comment" class="prev">
+			<span class="label">&larr; Prev</span>
+			<span class="title">Issue comment</span>
+		</a>
+		<a href="/docs/workflows/pr-fix" class="next">
+			<span class="label">Next &rarr;</span>
+			<span class="title">PR fix</span>
+		</a>
+	</div>
+</DocsLayout>
+
+<style is:global>
+	.workflow-diagram {
+		margin: 1.5rem 0;
+		padding: 1.25rem;
+		background: var(--bg-card);
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		overflow-x: auto;
+	}
+
+	.workflow-diagram svg {
+		width: 100%;
+		max-width: 200px;
+		height: auto;
+		display: block;
+		margin: 0 auto;
+	}
+</style>
