@@ -22,7 +22,33 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 		</div>
 	</div>
 
-	<h2>1. Fork and clone</h2>
+	<h2>Quick setup (recommended)</h2>
+
+	<p>
+		The fastest path from a bare server to a running instance — the setup wizard
+		handles environment files, secrets, Docker Compose, and optional Caddy TLS:
+	</p>
+
+	<pre><code>npx lastlight setup</code></pre>
+
+	<p>
+		It walks you through entering your GitHub App credentials, Anthropic API key,
+		domain, and optional Slack integration. When done it writes <code>.env</code>,
+		copies your PEM key into place, generates the Docker Compose config, and offers
+		to build and start the containers.
+	</p>
+
+	<div class="docs-callout tip">
+		<div class="docs-callout-body">
+			<strong>Prerequisites:</strong> Node.js 20+, Docker, and a
+			<a href="/docs/github-app">GitHub App</a> already created. If you prefer
+			to configure everything manually, follow the steps below instead.
+		</div>
+	</div>
+
+	<h2>Manual setup</h2>
+
+	<h3>1. Fork and clone</h3>
 
 	<pre><code>git clone https://github.com/YOUR-USER/lastlight.git
 cd lastlight
@@ -33,7 +59,7 @@ git remote add upstream https://github.com/cliftonc/lastlight.git</code></pre>
 		match your project. Pull from <code>upstream</code> when you want updates.
 	</p>
 
-	<h2>2. Lay out <code>secrets/</code></h2>
+	<h3>2. Lay out <code>secrets/</code></h3>
 
 	<p>
 		Secrets live in a <code>secrets/</code> directory that's gitignored and mounted
@@ -60,7 +86,7 @@ cp /path/to/your-app.private-key.pem secrets/</code></pre>
 		<code>ADMIN_PASSWORD</code>, and the Slack OAuth group.
 	</p>
 
-	<h2>3. Build and start</h2>
+	<h3>3. Build and start</h3>
 
 	<pre><code># Point Caddy at your domain
 echo "DOMAIN=lastlight.example.com" >> secrets/.env
@@ -77,7 +103,7 @@ docker compose logs -f agent</code></pre>
 		Encrypt certificate on first start. DNS must already resolve to the host.
 	</p>
 
-	<h2>4. First-time Claude auth (subscription mode)</h2>
+	<h3>4. First-time Claude auth (subscription mode)</h3>
 
 	<p>
 		If you're using the Claude subscription (no <code>ANTHROPIC_API_KEY</code>), log
@@ -92,7 +118,7 @@ docker compose logs -f agent</code></pre>
 		and survives restarts and rebuilds.
 	</p>
 
-	<h2>5. Verify it's running</h2>
+	<h3>5. Verify it's running</h3>
 
 	<pre><code>curl https://lastlight.example.com/health
 # &#123; "status": "ok" &#125;
@@ -105,7 +131,7 @@ curl -X POST https://lastlight.example.com/webhooks/github -d '&#123;&#125;'</co
 		Home tab. You should see live activity stats, recent workflows, and resource usage.
 	</p>
 
-	<h2>6. Wire up the webhook</h2>
+	<h3>6. Wire up the webhook</h3>
 
 	<p>Back in your GitHub App settings:</p>
 
